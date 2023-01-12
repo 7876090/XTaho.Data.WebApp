@@ -1,6 +1,57 @@
 ﻿@inherits LayoutComponentBase
 
-XTaho
+<div class="wrapper">
+    <div class="container">
+        <aside class="sidebar">
+        <a href="#" class="sidebar-logo">
+            <img src="/frontend/img/logo.png" alt="" />
+        </a>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav__item">
+                <a href="#" class="sidebar-nav__link">
+                    <span>НСИ</span>
+                </a>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-nav__item">
+                    <a href="/catalogs/members" class="sidebar-nav__link">
+                        <span>Участники системы</span>
+                    </a>
+                    </li>
+                    <li class="sidebar-nav__item">
+                    <a href="#" class="sidebar-nav__link">
+                        <span>Модели устройств</span>
+                    </a>
+                    </li>
+                    <li class="sidebar-nav__item">
+                    <a href="#" class="sidebar-nav__link">
+                        <span>Устройства</span>
+                    </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-nav__item"><a href="#" class="sidebar-nav__link">Администрирование</a>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-nav__item">
+                    <a href="#" class="sidebar-nav__link">
+                        <span>Пользователи системы</span>
+                    </a>
+                    </li>
+                    <li class="sidebar-nav__item">
+                    <a href="#" class="sidebar-nav__link">
+                        <span>Ролевая модель</span>
+                    </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        </aside>
+        <div class="main">
+            <main>
+                @Body
+            </main>
+        </div>
+    </div>
+</div>
 
 @code {
 

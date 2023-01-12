@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
+using System.Net.NetworkInformation;
 using XTaho.Data.WebApp.Areas.Identity;
 using XTaho.Data.WebApp.DataAccess.Identity;
 using XTaho.Data.WebApp.DataAccess.PostgreSql;
 using XTaho.Data.WebApp.Models.Catalogs;
+using XTaho.Data.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +44,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 
 ////builder.Services.AddSingleton<RolesService>();
 
-////builder.Services.AddSingleton<MembersService>();
+builder.Services.AddSingleton<MembersService>();
 ////builder.Services.AddSingleton<MembersUsersService>();
 
 ////builder.Services.AddSingleton<DevicesService>();

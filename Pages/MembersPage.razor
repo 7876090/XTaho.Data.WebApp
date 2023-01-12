@@ -1,0 +1,56 @@
+﻿@page "/catalogs/members"
+
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+
+@inject IJSRuntime JS;
+@inject MembersService MService;
+
+<h5>Участники системы</h5>
+
+<table>
+    <tr>
+        <th>#</th>
+        <th>Наименование</th>
+        <th>ИНН</th>
+        <th>Описание</th>
+        <th></th>
+        <th></th>
+    </tr>
+    @foreach(var item in members)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Name</td>
+            <td>@item.INN</td>
+            <td>@item.Description</td>
+            <td><button @onclick="btnEditItem">Edit</button></td>
+        </tr>
+    }
+</table>
+
+@code {
+    private List<MemberModel> members = new List<MemberModel>();
+    private MemberModel objMember = new MemberModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateMembers();
+    }
+
+    private async Task UpdateMembers()
+    {
+        QueryResult<MemberModel> result = await MService.GetMembersListAsync();
+        if (result.Success)
+        {
+            members = result.Collection ?? new List<MemberModel>();
+        }
+    }
+
+    private void btnEditItem()
+    {
+        var i = 0;
+    }
+
+}

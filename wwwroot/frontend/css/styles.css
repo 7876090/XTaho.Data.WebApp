@@ -22,11 +22,13 @@ a {
 
 .wrapper {
    display: flex;
+   justify-content: center;
    width: 100%;
    min-height: 100vh;
 }
 
 .container {
+   display: flex;
    width: 90%;
 }
 
@@ -49,4 +51,10 @@ a {
 
 .sidebar-nav__link {
    font-size: 1.2rem;
+}
+
+.main {
+   display: flex;
+   flex-direction: column;
+   width: 100%;
 }
