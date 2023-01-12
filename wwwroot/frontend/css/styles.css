@@ -4,6 +4,10 @@
    box-sizing: border-box;
 }
 
+body {
+   background: #e9ecef;
+}
+
 .b-red {
    border: 1px solid red;
 }
@@ -18,35 +22,31 @@ a {
 
 .wrapper {
    display: flex;
-   justify-content: center;
-   min-height: 100%;
-   overflow: hidden;
+   width: 100%;
+   min-height: 100vh;
 }
 
 .container {
-   display: flex;
    width: 90%;
 }
 
-.sidebar-wrapper {
+.sidebar {
    display: flex;
    flex-direction: column;
-   width: 20%;
+   min-width: 15%;
+   min-height: 100%;
 }
 
-.content-wrapper {
+.sidebar-logo {
    display: flex;
-   flex-direction: column;
-   position: relative;
+   justify-content: center;
+   margin: 10px;
 }
 
-.content {
-   position: absolute;
-   top: 50px;
-   left: 50px;
+.sidebar-nav {
+   margin: 0 0 10px 10px;
 }
 
-.main {
-   flex: 1 1 auto;
-   height: 80%;
+.sidebar-nav__link {
+   font-size: 1.2rem;
 }
