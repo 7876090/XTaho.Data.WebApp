@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTaho.Data.WebApp", "XTaho.Data.WebApp.csproj", "{DE6915C7-7EDB-43C6-A837-53702BB55B6F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE6915C7-7EDB-43C6-A837-53702BB55B6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE6915C7-7EDB-43C6-A837-53702BB55B6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE6915C7-7EDB-43C6-A837-53702BB55B6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE6915C7-7EDB-43C6-A837-53702BB55B6F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9387514B-B459-434C-B36B-CB237E91C989}
+	EndGlobalSection
+EndGlobal

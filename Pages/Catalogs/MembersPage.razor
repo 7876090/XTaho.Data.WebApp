@@ -1,0 +1,156 @@
+﻿@page "/catalogs/members"
+
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+
+@inject IJSRuntime JS;
+@inject MembersService MService;
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col"></th>
+            <th scope="col">#</th>
+            <th scope="col">Наименование</th>
+            <th scope="col">ИНН</th>
+            <th scope="col">Описание</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in members)
+        {
+            <tr>
+                <td><a class="btn__link" @onclick="@(() => btnEditItemOnClick(item))"><img src="src/img/btn/edit.svg" /></a></td>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                <td>@item.INN</td>
+                <td>@item.Description</td>
+                <td><a class="btn__link" href="#"><img src="src/img/btn/delete.svg" /></a></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class=@(itemModalClassList) style=@(itemModalStyle) role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form class="row g-3 needs-validation" novalidate>
+  <div class="col-md-4">
+    <label for="validationCustom01" class="form-label">First name</label>
+    <input type="text" class="form-control" id="validationCustom01" value="Mark" required>
+    <div class="valid-feedback">
+      Looks good!
+    </div>
+  </div>
+</form>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MemberModel> members = new List<MemberModel>();
+    private MemberModel currentItem = new MemberModel();
+    private bool isNewItem = true;
+
+    private string itemModalStyle = "";
+    private string itemModalClassList = "modal fade";
+    
+    #region DOM
+
+    private async Task ChangeElementClassList(string elementId, string className)
+    {
+        await JS.InvokeVoidAsync("changeElementClassList", elementId, className);
+    }
+
+    private async Task<bool> Alert(string? text)
+    {
+        return await JS.InvokeAsync<bool>("confirm", $"{text ?? "Ошибка"}!");
+    }
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateMembers();
+    }
+
+    private async Task UpdateMembers()
+    {
+        QueryResult<MemberModel> result = await MService.GetMembersListAsync();
+        if (result.Success)
+        {
+            members = result.Collection ?? new List<MemberModel>();
+        }
+    }
+
+    private async Task btnAddItemOnclick()
+    {
+        currentItem = new MemberModel();
+        isNewItem = true;
+        await ChangeElementClassList("popup_item", "show");
+        await ChangeElementClassList("popup_item-content", "show");
+    }
+
+    private async Task btnEditItemOnClick(MemberModel item)
+    {
+        currentItem = item;
+        isNewItem = false;
+        itemModalClassList = itemModalClassList.Contains("show") ? itemModalClassList.Replace(" show", "") : itemModalClassList + " show";
+        itemModalStyle = string.IsNullOrEmpty(itemModalStyle) ? "display: block;" : "";
+    }
+
+    private async Task btnSetDeletionMark(MemberModel item)
+    {
+        bool currentStage = item.IsDeleted;
+        item.IsDeleted = !item.IsDeleted;
+        ExecuteResult result = await MService.UpdateMemberAsync(item);
+        if (result.Success) { }
+        else
+        {
+            item.IsDeleted = currentStage;
+            await Alert(result.ErrorDescription);
+        }
+    }
+
+    private async Task btnCloseItemOnClick()
+    {
+        await ChangeElementClassList("popup_item", "show");
+        await ChangeElementClassList("popup_item-content", "show");
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        bool canChangeClassList = true;
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await MService.AddMemberAsync(currentItem);
+            if (result.Success)
+            {
+                members.Add(currentItem);
+            }
+            else
+            {
+                canChangeClassList = false;
+                await Alert(result.ErrorDescription);
+            }
+        }
+        else
+        {
+            result = await MService.UpdateMemberAsync(currentItem);
+            if (result.Success) { }
+            else
+            {
+                canChangeClassList = false;
+                await Alert(result.ErrorDescription);
+            }
+        }
+        if (canChangeClassList)
+        {
+            await btnCloseItemOnClick();
+        }
+    }
+}

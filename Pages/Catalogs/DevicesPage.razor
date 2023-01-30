@@ -1,0 +1,293 @@
+﻿@page "/catalogs/devices"
+
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+
+@inject IJSRuntime JS;
+@inject DevicesService DService;
+@inject DeviceModelsService DMService;
+@inject MembersService MService;
+
+
+<div class="page__content">
+    <div class="page__header">
+        <span>Устройства системы</span>
+    </div>
+
+    <div class="table__wrapper">
+        <div class="table__panel">
+            <button class="btn add" @onclick="btnAddItemOnclick">Добавить</button>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>#</th>
+                    <th>Наименование</th>
+                    <th>Серийный номер</th>
+                    <th>Модель</th>
+                    <th>Владелец</th>
+                    <th>Описание</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in devices)
+                {
+                    <tr class=@(item.IsDeleted ? "deletion-mark" : "")>
+                        <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="(() => btnEditItemOnClick(item))"><img src="frontend/src/img/btn/edit.svg" /></a></td>
+                        <td>@item.Id</td>
+                        <td>@item.Name</td>
+                        <td>@item.SerialNumber</td>
+                        <td>@item.ModelName</td>
+                        <td>@item.MemberName</td>
+                        <td>@item.Description</td>
+                        <td><a class="btn__link" @onclick="(() => btnSetDeletionMark(item))"><img src="frontend/src/img/btn/delete.svg" /></a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="popup_item" class="popup">
+    <div class="popup__body">
+        <div id="popup_item-content" class="popup__content">
+            <a class="popup__close" @onclick=btnCloseItemOnClick>&#9587</a>
+            <div class="popup__header">
+                @(currentItem.Name ?? "Новая модель ")
+            </div>
+            <div class="popup__main">
+                <label>#</label>
+                <input type="text" class="input__field w-50" disabled @bind="currentItem.Id" />
+                <label>Наименование</label>
+                <input type="text" class="input__field w-300" @bind="currentItem.Name" placeholder="Наименование" />
+                <label>Серийный номер</label>
+                <input type="text" maxlength="20" class="input__field w-300" @bind="currentItem.SerialNumber" placeholder="Серийный номер" />
+                <label>Модель устройства</label>
+                <select class="input__field w-300" @onchange="selectModelOnChange">
+                    @foreach (var item in models)
+                    {
+                        @if (!item.IsDeleted)
+                        {
+                            @if (currentItem.ModelId == item.Id)
+                            {
+                                <option value=@item.Id selected>@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value=@item.Id>@item.Name</option>
+                            }
+                        }
+                    }
+                </select>
+                <label>Владелец</label>
+                <select class="input__field w-300" @onchange="selectMemberOnChange">
+                    @foreach (var item in members)
+                    {
+                        @if (!item.IsDeleted)
+                        {
+                            @if (currentItem.MemberId == item.Id)
+                            {
+                                <option value=@item.Id selected>@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value=@item.Id>@item.Name</option>
+                            }
+                        }
+                    }
+                </select>
+                <label>Регистрационный номер ТС</label>
+                <input type="text" maxlength="9" class="input__field w-300" @bind="currentItem.VehicleRegistrationNumber" placeholder="Регистрационный номер ТС" />
+                <label>Описание</label>
+                <textarea class="input__field text-area w-300" @bind="currentItem.Description" placeholder="Описание" />
+                <label>Пометка удаления</label>
+                <input class="input__checkbox" type="checkbox" @bind="currentItem.IsDeleted" />
+            </div>
+            <div class="popup__footer">
+                <div class="popup__footer-rcol">
+                    <button class="btn add" @onclick=btnSaveItemOnClick>Сохранить</button>
+                    <button class="btn close" @onclick=btnCloseItemOnClick>Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
+    private List<DeviceModel> devices = new List<DeviceModel>();
+    private List<MemberModel> members = new List<MemberModel>();
+    private DeviceModel currentItem = new DeviceModel();
+    private bool isNewItem = true;
+
+    #region DOM
+
+    private async Task ChangeElementClassList(string elementId, string className)
+    {
+        await JS.InvokeVoidAsync("changeElementClassList", elementId, className);
+    }
+
+    private async Task<bool> Alert(string? text)
+    {
+        return await JS.InvokeAsync<bool>("confirm", $"{text ?? "Ошибка"}!");
+    }
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateDevices();
+    }
+
+    private async Task<bool> UpdateDevices()
+    {
+        bool updateResult = true;
+        QueryResult<DeviceModel> result = await DService.GetDevicesListAsync();
+        if (result.Success)
+        {
+            devices = result.Collection ?? new List<DeviceModel>();
+        }
+        else
+        {
+            updateResult = false;
+            await Alert(result.ErrorDescription);
+        }
+        QueryResult<DeviceModelsModel> modelsResult = await DMService.GetDeviceModelsListAsync();
+        if (modelsResult.Success)
+        {
+            models = modelsResult.Collection ?? new List<DeviceModelsModel>();
+            models.Insert(0, new DeviceModelsModel() { Name = "Выберите модель" });
+        }
+        else
+        {
+            updateResult = false;
+            await Alert(modelsResult.ErrorDescription);
+        }
+        QueryResult<MemberModel> membersResult = await MService.GetMembersListAsync();
+        if (membersResult.Success)
+        {
+            members = membersResult.Collection ?? new List<MemberModel>();
+            members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
+        }
+        else
+        {
+            updateResult = false;
+            await Alert(modelsResult.ErrorDescription);
+        }
+        return updateResult;
+    }
+
+    private async Task btnAddItemOnclick()
+    {
+        currentItem = new DeviceModel();
+        isNewItem = true;
+        await ChangeElementClassList("popup_item", "show");
+        await ChangeElementClassList("popup_item-content", "show");
+    }
+
+    private async Task btnEditItemOnClick(DeviceModel item)
+    {
+        currentItem = item;
+        isNewItem = false;
+        await ChangeElementClassList("popup_item", "show");
+        await ChangeElementClassList("popup_item-content", "show");
+    }
+
+    private async Task btnSetDeletionMark(DeviceModel item)
+    {
+        bool currentStage = item.IsDeleted;
+        item.IsDeleted = !item.IsDeleted;
+        ExecuteResult result = await DService.UpdateDeviceAsync(item);
+        if (result.Success) { }
+        else
+        {
+            item.IsDeleted = currentStage;
+            await Alert(result.ErrorDescription);
+        }
+    }
+
+    private async Task btnCloseItemOnClick()
+    {
+        await ChangeElementClassList("popup_item", "show");
+        await ChangeElementClassList("popup_item-content", "show");
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        bool canChangeClassList = true;
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await DService.AddDeviceAsync(currentItem);
+            if (result.Success)
+            {
+                devices.Add(currentItem);
+            }
+            else
+            {
+                canChangeClassList = false;
+                await Alert(result.ErrorDescription);
+            }
+        }
+        else
+        {
+            result = await DService.UpdateDeviceAsync(currentItem);
+            if (result.Success) { }
+            else
+            {
+                canChangeClassList = false;
+                await Alert(result.ErrorDescription);
+            }
+        }
+        if (canChangeClassList)
+        {
+            await UpdateDevices();
+            await btnCloseItemOnClick();
+        }
+    }
+
+    private void selectModelOnChange(ChangeEventArgs e)
+    {
+        int selectedModelId = int.Parse(e.Value.ToString());
+        bool selected = false;
+        foreach (var item in models)
+        {
+            if (item.Id == selectedModelId)
+            {
+                currentItem.ModelId = selectedModelId;
+                currentItem.ModelName= item.Name;
+                selected = true;
+                break;
+            }
+        }
+        if (!selected)
+        {
+            currentItem.ModelId = 0;
+            currentItem.ModelName= "Не выбрана";
+        }
+    }
+
+    private void selectMemberOnChange(ChangeEventArgs e)
+    {
+        int selectedMemberId = int.Parse(e.Value.ToString());
+        bool selected = false;
+        foreach(var item in members)
+        {
+            if(item.Id == selectedMemberId)
+            {
+                currentItem.MemberId = selectedMemberId;
+                currentItem.MemberName = item.Name;
+                selected = true;
+                break;
+            }
+        }
+        if(!selected)
+        {
+            currentItem.MemberId = 0;
+            currentItem.MemberName = "Не выбран";
+        }
+    }
+}

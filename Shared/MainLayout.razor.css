@@ -1,0 +1,124 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 18%;
+    min-height: 100vh;
+    background: #467469;
+    border: 1px solid #3E6258;
+    border-radius: 0 5px 5px 0;
+    box-shadow: 2px 0px 8px 2px rgba(70,116,105,0.9);
+}
+
+
+.sidebar__content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 90%;
+    height: 100%;
+}
+
+.sidebar__logo {
+    display: flex;
+    margin: 30px 0 0 30px;
+}
+
+    .sidebar__logo > span {
+        color: #fff;
+        text-align: center;
+        font-size: 1.2rem;
+    }
+
+.sidebar-nav {
+    margin-top: 50px;
+}
+
+.sidebar__item {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar__link {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+    .sidebar__link:hover {
+        cursor: pointer;
+    }
+
+.sidebar__link-lcolumn {
+    display: flex;
+}
+
+.sidebar__link-label {
+    margin-left: 10px;
+    color: #fff;
+}
+
+.sidebar__link-arrow {
+    /*transform: rotate(-90deg);*/
+    transition-duration: 500ms;
+}
+
+.sidebar__link:hover {
+    border-radius: 5px;
+    background: #3E6258;
+    box-shadow: 2px -2px 10px 6px rgba(55,87,78,0.9);
+}
+
+.rotate {
+    transform: rotate(90deg);
+}
+
+.sidebar__sub-item {
+    position: relative;
+    left: -100px;
+    margin-left: 30px;
+    visibility: collapse;
+    opacity: 0;
+    border-radius: 10px;
+    transition-delay: 100ms;
+    transition-duration: 500ms;
+    /*transform: rotateY(145deg) rotateX(90deg);*/
+}
+
+    .sidebar__sub-item.show {
+        left: 0;
+        visibility: visible;
+        opacity: 1;
+        transform: rotateY(0) rotateX(0);
+        transition-delay: 100ms;
+        transition-duration: 500ms;
+    }
+
+
+main {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.main__content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 90%;
+    box-shadow: 0px 0px 28px 2px rgba(130,115,115,0.75);
+    margin-top: 100px;
+    border-radius: 5px;
+}

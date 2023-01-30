@@ -1,0 +1,153 @@
+﻿@inherits LayoutComponentBase
+
+<div class="wrapper">
+    <aside class="sidebar">
+        <div class="sidebar__content">
+            <a href="https://www.auto.shtrih-m.ru/" target="_blank" class="sidebar__logo">
+                <img src="src/img/logo.svg" /><span>Экосистема для транспорта</span>
+            </a>
+            <ul class="sidebar-nav">
+                <li class="sidebar__item">
+                    <a class="sidebar__link" @onclick="nciLinkOnClick">
+                        <div class="sidebar__link-lcolumn">
+                            <div class="sidebar__link-logo">
+                                <img src="src/img/nci.svg" />
+                            </div>
+                            <span class="sidebar__link-label">НСИ</span>
+                        </div>
+                        <div>
+                            <img class="sidebar__link-arrow" src="src/img/sidebar_link-arrow.svg" />
+                        </div>
+                    </a>
+                    <ul class=@(nciSubItemClassList)>
+                        <li class="sidebar__item">
+                            <a href="/catalogs/members" class="sidebar__link">
+                                <span class="sidebar__link-label">Участники системы</span>
+                            </a>
+                        </li>
+                        <li class="sidebar__item">
+                            <a href="/catalogs/devicemodels" class="sidebar__link">
+                                <span class="sidebar__link-label">Модели устройств</span>
+                            </a>
+                        </li>
+                        <li class="sidebar__item">
+                            <a href="/catalogs/devices" class="sidebar__link">
+                                <span class="sidebar__link-label">Устройства системы</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar__item">
+                    <a class="sidebar__link" @onclick="workshopLinkOnClick">
+                        <div class="sidebar__link-lcolumn">
+                            <div class="sidebar__link-logo">
+                                <img src="src/img/nci.svg" />
+                            </div>
+                            <span class="sidebar__link-label">Управление мастерской</span>
+                        </div>
+                        <div>
+                            <img class=@(workshopArrowClassList) src="src/img/sidebar_link-arrow.svg" />
+                        </div>
+                    </a>
+                    <ul class=@(workshopSubItemClassList)>
+                        <li class="sidebar__item">
+                            <a href="" class="sidebar__link">
+                                <span class="sidebar__link-label">Заказы ЗИП</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar__item">
+                    <a class="sidebar__link" @onclick="statisticsLinkOnClick">
+                        <div class="sidebar__link-lcolumn">
+                            <div class="sidebar__link-logo">
+                                <img src="src/img/nci.svg" />
+                            </div>
+                            <span class="sidebar__link-label">Статистика</span>
+                        </div>
+                        <div>
+                            <img class=@(statisticsArrowClassList) src="src/img/sidebar_link-arrow.svg" />
+                        </div>
+                    </a>
+                    <ul class=@(statisticsSubItemClassList)>
+                        <li class="sidebar__item">
+                            <a href="" class="sidebar__link">
+                                <span class="sidebar__link-label">On-line табло</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="sidebar__item">
+                    <a class="sidebar__link" @onclick="administrationLinkOnClick">
+                        <div class="sidebar__link-lcolumn">
+                            <div class="sidebar__link-logo">
+                                <img src="src/img/nci.svg" />
+                            </div>
+                            <span class="sidebar__link-label">Администрирование</span>
+                        </div>
+                        <div>
+                            <img class=@(administrationArrowClassList) src="src/img/sidebar_link-arrow.svg" />
+                        </div>
+                    </a>
+                    <ul class=@(administrationSubItemClassList)>
+                        <li class="sidebar__item">
+                            <a href="" class="sidebar__link">
+                                <span class="sidebar__link-label">Пользователи системы</span>
+                            </a>
+                        </li>
+                        <li class="sidebar__item">
+                            <a href="" class="sidebar__link">
+                                <span class="sidebar__link-label">Ролевая модель</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </aside>
+    <main class="main">
+        <div class="main__content">
+            @Body
+        </div>
+    </main>
+</div>
+
+
+@code {
+    private string nciSubItemClassList = "sidebar__sub-item";
+    private string nciArrowClassList = "sidebar__link-arrow";
+
+    private string workshopSubItemClassList = "sidebar__sub-item";
+    private string workshopArrowClassList = "sidebar__link-arrow";
+
+    private string statisticsSubItemClassList = "sidebar__sub-item";
+    private string statisticsArrowClassList = "sidebar__link-arrow";
+
+    private string administrationSubItemClassList = "sidebar__sub-item";
+    private string administrationArrowClassList = "sidebar__link-arrow";
+
+    private void nciLinkOnClick()
+    {
+        nciSubItemClassList = nciSubItemClassList.Contains("show") ? nciSubItemClassList.Replace(" show", "") : nciSubItemClassList + " show";
+        nciArrowClassList = nciArrowClassList.Contains("rotate") ? nciArrowClassList.Replace(" rotate", "") : nciArrowClassList + " rotate";
+    }
+
+    private void workshopLinkOnClick()
+    {
+        workshopSubItemClassList = workshopSubItemClassList.Contains("show") ? workshopSubItemClassList.Replace(" show", "") : workshopSubItemClassList + " show";
+        nciArrowClassList = nciArrowClassList.Contains("rotate") ? nciArrowClassList.Replace(" rotate", "") : nciArrowClassList + " rotate";
+    }
+
+    private void statisticsLinkOnClick()
+    {
+        statisticsSubItemClassList = statisticsSubItemClassList.Contains("show") ? statisticsSubItemClassList.Replace(" show", "") : statisticsSubItemClassList + " show";
+        statisticsArrowClassList = statisticsArrowClassList.Contains("rotate") ? statisticsArrowClassList.Replace(" rotate", "") : statisticsArrowClassList + " rotate";
+    }
+
+    private void administrationLinkOnClick()
+    {
+        administrationSubItemClassList = administrationSubItemClassList.Contains("show") ? administrationSubItemClassList.Replace(" show", "") : administrationSubItemClassList + " show";
+        administrationArrowClassList = administrationArrowClassList.Contains("rotate") ? administrationArrowClassList.Replace(" rotate", "") : administrationArrowClassList + " rotate";
+    }
+
+}

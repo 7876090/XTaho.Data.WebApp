@@ -1,0 +1,39 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 200;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.b-red {
+    border: 1px solid red;
+}
+
+ul {
+    list-style-type: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn__link {
+    display: flex;
+    cursor: pointer;
+    height: 25px;
+    width: 25px;
+    transition-duration: 200ms;
+}
+
+    .btn__link.hidden {
+        visibility: hidden;
+        transition-duration: 300ms;
+    }
+
+    .btn__link>img:hover {
+        height: 23px;
+        width: 23px;
+    }
