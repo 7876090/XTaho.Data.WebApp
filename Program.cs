@@ -45,7 +45,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 ////builder.Services.AddSingleton<RolesService>();
 
 builder.Services.AddSingleton<MembersService>();
-////builder.Services.AddSingleton<MembersUsersService>();
+builder.Services.AddSingleton<MembersUsersService>();
 
 builder.Services.AddSingleton<DevicesService>();
 builder.Services.AddSingleton<DeviceModelsService>();

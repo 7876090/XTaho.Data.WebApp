@@ -27,15 +27,49 @@ a {
     cursor: pointer;
     height: 25px;
     width: 25px;
-    transition-duration: 200ms;
+    transition-duration: 500ms;
 }
 
     .btn__link.hidden {
         visibility: hidden;
-        transition-duration: 300ms;
+        transition-duration: 800ms;
     }
 
     .btn__link>img:hover {
         height: 23px;
         width: 23px;
     }
+
+.tr {
+    transition-duration: 500ms;
+}
+
+    .tr.deletion-mark {
+        opacity: 50%;
+        transition-duration: 1s;
+    }
+
+.xalert {
+    display: none;
+/*    opacity: 0;
+    visibility: collapse;
+    transition-duration: 300ms;*/
+}
+
+    .xalert.xshow {
+        display: flex;
+        flex-direction: column;
+/*        opacity: 1;
+        visibility: visible;*/
+    }
+
+.page {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+
+.page__caption {
+    display: flex;
+    justify-content: center;
+}

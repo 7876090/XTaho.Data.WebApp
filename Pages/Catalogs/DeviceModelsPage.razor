@@ -4,98 +4,118 @@
 @using XTaho.Data.WebApp.Services;
 @using XTaho.Data.WebApp.DataAccess.PostgreSql;
 
-@inject IJSRuntime JS;
 @inject DeviceModelsService DMService;
 
 
-<div class="page__content">
-    <div class="page__header">
-        <span>Модели устройств</span>
+<div class="page">
+    <div class="page__caption">
+        <h4>Модели устройств</h4>
     </div>
-
-    <div class="table__wrapper">
-        <div class="table__panel">
-            <button class="btn add" @onclick="btnAddItemOnclick">Добавить</button>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-success" @onclick="btnAddItemOnclick" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>#</th>
-                    <th>Наименование</th>
-                    <th>Номер</th>
-                    <th>Регистрационный номер</th>
-                    <th>Описание</th>
-                    <th></th>
+    </div>
+    <table class="table caption-top">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">#</th>
+                <th scope="col">Наименование</th>
+                <th scope="col">Номер</th>
+                <th scope="col">Рег. номер</th>
+                <th scope="col">Описание</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in models)
+            {
+                <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
+                    <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.Number</td>
+                    <td>@item.RegistrationNumber</td>
+                    <td>@item.Description</td>
+                    <td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in models)
-                {
-                    <tr class=@(item.IsDeleted ? "deletion-mark" : "")>
-                        <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="(() => btnEditItemOnClick(item))"><img src="frontend/src/img/btn/edit.svg" /></a></td>
-                        <td>@item.Id</td>
-                        <td>@item.Name</td>
-                        <td>@item.Number</td>
-                        <td>@item.RegistrationNumber</td>
-                        <td>@item.Description</td>
-                        <td><a class="btn__link" @onclick="(() => btnSetDeletionMark(item))"><img src="frontend/src/img/btn/delete.svg" /></a></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+            }
+        </tbody>
+    </table>
 </div>
 
-<div id="popup_item" class="popup">
-    <div class="popup__body">
-        <div id="popup_item-content" class="popup__content">
-            <a class="popup__close" @onclick=btnCloseItemOnClick>&#9587</a>
-            <div class="popup__header">
-                @(currentItem.Name ?? "Новая модель ")
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Модель устройства @(isNewItem ? "" : "#" + currentItem.Id) </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="popup__main">
-                <label>#</label>
-                <input type="text" class="input__field w-50" disabled @bind="currentItem.Id" />
-                <label>Наименование</label>
-                <input type="text" class="input__field w-300" @bind="currentItem.Name" placeholder="Наименование" />
-                <label>Номер модели</label>
-                <input type="text" maxlength="13" class="input__field w-300" @bind="currentItem.Number" placeholder="Номер" />
-                <label>Регистрационный номер</label>
-                <input type="text" maxlength="13" class="input__field w-300" @bind="currentItem.RegistrationNumber" placeholder="Регистрационный номер" />
-                <label>Описание</label>
-                <textarea class="input__field text-area w-300" @bind="currentItem.Description" placeholder="Описание" />
-                <label>Пометка удаления</label>
-                <input class="input__checkbox" type="checkbox" @bind="currentItem.IsDeleted" />
-            </div>
-            <div class="popup__footer">
-                <div class="popup__footer-rcol">
-                    <button class="btn add" @onclick=btnSaveItemOnClick>Сохранить</button>
-                    <button class="btn close" @onclick=btnCloseItemOnClick>Закрыть</button>
-                </div>
+            <div class="modal-body">
+                <form class="row-1" @onsubmit="btnSaveItemOnClick">
+                    <div class="col">
+                        <label for="name" class="form-label">Наименование</label>
+                        <input type="text" class="form-control" id="name" placeholder="введите наименование (обязательно)" @bind="currentItem.Name" required>
+                    </div>
+                    <div class="col">
+                        <label for="number" class="form-label">Номер модели</label>
+                        <input type="text" class="form-control" id="number" placeholder="номер модели (обязательно)" @bind="currentItem.Number" required>
+                    </div>
+                    <div class="col">
+                        <label for="regnumber" class="form-label">Регистрационный номер </label>
+                        <input type="text" class="form-control" id="regnumber" placeholder="рег. номер (обязательно)" @bind="currentItem.RegistrationNumber" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" placeholder="введите описание модели (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
+                    </div>
+                    <div class=@alertItemClassList role="alert">
+                        <h5 class="alert-heading">
+                            @(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")
+                        </h5>
+                        <hr />
+                        <p>
+                            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+
+
 
 @code {
     private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
     private DeviceModelsModel currentItem = new DeviceModelsModel();
     private bool isNewItem = true;
+    private string errorDescription = "";
+    private string alertItemClassList = "alert xalert";
 
-    #region DOM
-
-    private async Task ChangeElementClassList(string elementId, string className)
+    private void resetError()
     {
-        await JS.InvokeVoidAsync("changeElementClassList", elementId, className);
+        errorDescription = "";
+        alertItemClassList = "alert xalert";
     }
 
-    private async Task<bool> Alert(string? text)
+    private void setError(string eDescription)
     {
-        return await JS.InvokeAsync<bool>("confirm", $"{text ?? "Ошибка"}!");
+        errorDescription = eDescription;
+        alertItemClassList = alertItemClassList + " alert-danger xshow";
     }
 
-    #endregion
+    private void setNoError()
+    {
+        errorDescription = "";
+        alertItemClassList = alertItemClassList + " alert-success xshow";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,20 +131,18 @@
         }
     }
 
-    private async Task btnAddItemOnclick()
+    private void btnAddItemOnclick()
     {
+        resetError();
         currentItem = new DeviceModelsModel();
         isNewItem = true;
-        await ChangeElementClassList("popup_item", "show");
-        await ChangeElementClassList("popup_item-content", "show");
     }
 
-    private async Task btnEditItemOnClick(DeviceModelsModel item)
+    private void btnEditItemOnClick(DeviceModelsModel item)
     {
+        resetError();
         currentItem = item;
         isNewItem = false;
-        await ChangeElementClassList("popup_item", "show");
-        await ChangeElementClassList("popup_item-content", "show");
     }
 
     private async Task btnSetDeletionMark(DeviceModelsModel item)
@@ -136,46 +154,29 @@
         else
         {
             item.IsDeleted = currentStage;
-            await Alert(result.ErrorDescription);
         }
-    }
-
-    private async Task btnCloseItemOnClick()
-    {
-        await ChangeElementClassList("popup_item", "show");
-        await ChangeElementClassList("popup_item-content", "show");
     }
 
     private async Task btnSaveItemOnClick()
     {
-        bool canChangeClassList = true;
+        resetError();
         ExecuteResult result;
         if (isNewItem)
         {
             result = await DMService.AddModelAsync(currentItem);
-            if (result.Success)
-            {
-                models.Add(currentItem);
-            }
-            else
-            {
-                canChangeClassList = false;
-                await Alert(result.ErrorDescription);
-            }
         }
         else
         {
-            result = await DMService.UpdateModelAsync(currentItem);
-            if (result.Success) { }
-            else
-            {
-                canChangeClassList = false;
-                await Alert(result.ErrorDescription);
-            }
+            result = await DMService .UpdateModelAsync(currentItem);
         }
-        if (canChangeClassList)
+        if (result.Success)
         {
-            await btnCloseItemOnClick();
+            setNoError();
+            await UpdateModels();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
         }
     }
 }

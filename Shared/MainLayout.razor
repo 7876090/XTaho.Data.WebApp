@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="wrapper">
-    <aside class="sidebar">
+    <div class="sidebar">
         <div class="sidebar__content">
             <a href="https://www.auto.shtrih-m.ru/" target="_blank" class="sidebar__logo">
                 <img src="src/img/logo.svg" /><span>Экосистема для транспорта</span>
@@ -16,7 +16,7 @@
                             <span class="sidebar__link-label">НСИ</span>
                         </div>
                         <div>
-                            <img class="sidebar__link-arrow" src="src/img/sidebar_link-arrow.svg" />
+                            <img class=@(nciArrowClassList) src="src/img/sidebar_link-arrow.svg" />
                         </div>
                     </a>
                     <ul class=@(nciSubItemClassList)>
@@ -91,7 +91,7 @@
                     </a>
                     <ul class=@(administrationSubItemClassList)>
                         <li class="sidebar__item">
-                            <a href="" class="sidebar__link">
+                            <a href="/administration/users" class="sidebar__link">
                                 <span class="sidebar__link-label">Пользователи системы</span>
                             </a>
                         </li>
@@ -104,7 +104,7 @@
                 </li>
             </ul>
         </div>
-    </aside>
+    </div>
     <main class="main">
         <div class="main__content">
             @Body
@@ -135,7 +135,7 @@
     private void workshopLinkOnClick()
     {
         workshopSubItemClassList = workshopSubItemClassList.Contains("show") ? workshopSubItemClassList.Replace(" show", "") : workshopSubItemClassList + " show";
-        nciArrowClassList = nciArrowClassList.Contains("rotate") ? nciArrowClassList.Replace(" rotate", "") : nciArrowClassList + " rotate";
+        workshopArrowClassList = workshopArrowClassList.Contains("rotate") ? workshopArrowClassList.Replace(" rotate", "") : workshopArrowClassList + " rotate";
     }
 
     private void statisticsLinkOnClick()

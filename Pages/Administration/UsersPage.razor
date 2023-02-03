@@ -1,16 +1,17 @@
-﻿@page "/catalogs/devices"
+﻿@page "/administration/users"
 
 @using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Models.Access;
+@using XTaho.Data.WebApp.Models.DataSets;
 @using XTaho.Data.WebApp.Services;
 @using XTaho.Data.WebApp.DataAccess.PostgreSql;
 
-@inject DevicesService DService;
-@inject DeviceModelsService DMService;
+@inject MembersUsersService MUService;
 @inject MembersService MService;
 
 <div class="page">
     <div class="page__caption">
-        <h4>Устройства системы</h4>
+        <h4>Пользователи системы</h4>
     </div>
     <div class="btn-toolbar" role="toolbar">
         <div class="btn-group" role="group">
@@ -22,30 +23,20 @@
             <tr>
                 <th scope="col"></th>
                 <th scope="col">#</th>
-                @*<th scope="col">Наименование</th>*@
-                <th scope="col">Серийный №</th>
-                <th scope="col">Модель</th>
-                <th scope="col">Владелец</th>
-                <th scope="col">Гос № ТС</th>
-                <th scope="col">Версия ПО</th>
-                <th scope="col">Дата обновления ПО</th>
+                <th scope="col">Имя</th>
+                <th scope="col">Участник системы</th>
                 <th scope="col">Описание</th>
                 <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in devices)
+            @foreach (var item in users)
             {
                 <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
                     <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>
                     <td>@item.Id</td>
-                    @*<td>@item.Name</td>*@
-                    <td>@item.SerialNumber</td>
-                    <td>@item.ModelName</td>
+                    <td>@item.Name</td>
                     <td>@item.MemberName</td>
-                    <td>@item.VehicleRegistrationNumber</td>
-                    <td>@item.FirmwareVersion</td>
-                    <td>@item.FirmwareUpdateDate</td>
                     <td>@item.Description</td>
                     <td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>
                 </tr>
@@ -58,37 +49,33 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Модель устройства @(isNewItem ? "" : "#" + currentItem.Id) </h1>
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Пользователь@(isNewItem ? "" : "#" + currentItem.Name) </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form class="row-1" @onsubmit="btnSaveItemOnClick">
                     <div class="col">
-                        <label for="name" class="form-label">Наименование</label>
+                        <label for="name" class="form-label">Имя</label>
                         <input type="text" class="form-control" id="name" placeholder="введите наименование (обязательно)" @bind="currentItem.Name" required>
                     </div>
                     <div class="col">
-                        <label for="number" class="form-label">Серийный номер</label>
-                        <input type="text" class="form-control" id="number" placeholder="серийный номер(обязательно)" @bind="currentItem.SerialNumber" required>
-                    </div>
-                    <div class="col">
-                        <label for="model" class="form-label">Модель устройства</label>
-                        <select class="form-select" id="model" @onchange="selectModelOnChange">
-                            @foreach(var model in models)
+                        <label for="user" class="form-label">Пользователь</label>
+                        <select class="form-select" id="user" @onchange="selectUserOnChange">
+                            @foreach (var user in identityUsers)
                             {
-                                if (currentItem.ModelId == model.Id)
+                                if (currentItem.UserId == user.Id)
                                 {
-                                    <option value="@model.Id" selected>@model.Name</option>
+                                    <option value="@user.Id" selected>@user.UserName</option>
                                 }
                                 else
                                 {
-                                    <option value="@model.Id">@model.Name</option>
+                                    <option value="@user.Id">@user.UserName</option>
                                 }
                             }
                         </select>
                     </div>
                     <div class="col">
-                        <label for="member" class="form-label" >Владелец</label>
+                        <label for="member" class="form-label">Участник системы</label>
                         <select class="form-select" id="member" @onchange="selectMemberOnChange">
                             @foreach (var member in members)
                             {
@@ -103,21 +90,9 @@
                             }
                         </select>
                     </div>
-                    <div class="col">
-                        <label for="regnumber" class="form-label">Регистрационный номер ТС</label>
-                        <input type="text" class="form-control" id="regnumber" placeholder="рег. номер тс (необязательно)" @bind="currentItem.VehicleRegistrationNumber">
-                    </div>
-                    <div class="col">
-                        <label for="firmwareVersion" class="form-label">Версия ПО</label>
-                        <input type="text" class="form-control" id="firmwareVersion" placeholder="версия прошивки(необязательно)" @bind="currentItem.FirmwareVersion">
-                    </div>
-                    <div class="col">
-                        <label for="firmwareUpdateDate" class="form-label">Дата обновления ПО</label>
-                        <input type="date" class="form-control" id="firmwareUpdateDate" placeholder="дата обновления прошивки(необязательно)" @bind="currentItem.FirmwareUpdateDate">
-                    </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Описание</label>
-                        <textarea class="form-control" id="description" placeholder="введите описание устройства (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
+                        <textarea class="form-control" id="description" placeholder="введите описание пользователя (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
                     </div>
                     <div class=@alertItemClassList role="alert">
                         <h5 class="alert-heading">
@@ -138,12 +113,11 @@
     </div>
 </div>
 
-
 @code {
-    private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
-    private List<DeviceModel> devices = new List<DeviceModel>();
+    private List<IdentityUserDataSet> identityUsers = new List<IdentityUserDataSet>();
+    private List<MembersUsersModel> users = new List<MembersUsersModel>();
     private List<MemberModel> members = new List<MemberModel>();
-    private DeviceModel currentItem = new DeviceModel();
+    private MembersUsersModel currentItem = new MembersUsersModel();
     private bool isNewItem = true;
     private string errorDescription = "";
     private string alertItemClassList = "alert xalert";
@@ -168,38 +142,40 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await UpdateDevices();
+        await UpdateUsers();
     }
 
-    private async Task<bool> UpdateDevices()
+    private async Task<bool> UpdateUsers()
     {
         bool updateResult = true;
-        QueryResult<DeviceModel> result = await DService.GetDevicesListAsync();
-        if (result.Success)
+
+        QueryResult<IdentityUserDataSet> iusersResult = await MUService.GetUsersListAsync();
+        if (iusersResult.Success)
         {
-            devices = result.Collection ?? new List<DeviceModel>();
+            identityUsers = iusersResult.Collection ?? new List<IdentityUserDataSet>();
+            identityUsers.Insert(0, new IdentityUserDataSet(){ UserName = "Выберите пользователя"});
         }
         else
         {
             updateResult = false;
-            setError(result.ErrorDescription ?? "Ошибка!");
+            setError(iusersResult.ErrorDescription ?? "Ошибка!");
         }
-        QueryResult<DeviceModelsModel> modelsResult = await DMService.GetDeviceModelsListAsync();
-        if (modelsResult.Success)
+
+        QueryResult<MembersUsersModel> usersResult = await MUService.GetMembersUsersListAsync();
+        if (usersResult.Success)
         {
-            models = modelsResult.Collection ?? new List<DeviceModelsModel>();
-            models.Insert(0, new DeviceModelsModel() { Name = "Выберите модель" });
+            users = usersResult.Collection ?? new List<MembersUsersModel>();
         }
         else
         {
             updateResult = false;
-            setError(modelsResult.ErrorDescription ?? "Ошибка!");
+            setError(usersResult.ErrorDescription ?? "Ошибка!");
         }
         QueryResult<MemberModel> membersResult = await MService.GetMembersListAsync();
         if (membersResult.Success)
         {
             members = membersResult.Collection ?? new List<MemberModel>();
-            members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
+            members.Insert(0, new MemberModel() { Name = "Выберите участника" });
         }
         else
         {
@@ -212,22 +188,22 @@
     private void btnAddItemOnclick()
     {
         resetError();
-        currentItem = new DeviceModel();
+        currentItem = new MembersUsersModel();
         isNewItem = true;
     }
 
-    private void btnEditItemOnClick(DeviceModel item)
+    private void btnEditItemOnClick(MembersUsersModel item)
     {
         resetError();
         currentItem = item;
         isNewItem = false;
     }
 
-    private async Task btnSetDeletionMark(DeviceModel item)
+    private async Task btnSetDeletionMark(MembersUsersModel item)
     {
         bool currentStage = item.IsDeleted;
         item.IsDeleted = !item.IsDeleted;
-        ExecuteResult result = await DService.UpdateDeviceAsync(item);
+        ExecuteResult result = await MUService.UpdateMemberUserAsync(item);
         if (result.Success) { }
         else
         {
@@ -235,7 +211,7 @@
         }
     }
 
-    private async Task btnCloseItemOnClick()
+    private void btnCloseItemOnClick()
     {
         resetError();
     }
@@ -246,41 +222,41 @@
         ExecuteResult result;
         if (isNewItem)
         {
-            result = await DService.AddDeviceAsync(currentItem);
+            result = await MUService.AddMemberUserAsync(currentItem);
         }
         else
         {
-            result = await DService.UpdateDeviceAsync(currentItem);
+            result = await MUService.UpdateMemberUserAsync(currentItem);
         }
         if (result.Success)
         {
             setNoError();
-            await UpdateDevices();
+            await UpdateUsers();
         }
         else
         {
             setError(result.ErrorDescription ?? "Ошибка!");
-        }        
+        }
     }
 
-    private void selectModelOnChange(ChangeEventArgs e)
+    private void selectUserOnChange(ChangeEventArgs e)
     {
-        int selectedModelId = int.Parse(e.Value.ToString());
+        string selectedUserId = e.Value.ToString();
         bool selected = false;
-        foreach (var item in models)
+        foreach (var item in identityUsers)
         {
-            if (item.Id == selectedModelId)
+            if (item.Id == selectedUserId)
             {
-                currentItem.ModelId = selectedModelId;
-                currentItem.ModelName= item.Name;
+                currentItem.UserId = selectedUserId;
+                currentItem.UserName = item.UserName;
                 selected = true;
                 break;
             }
         }
         if (!selected)
         {
-            currentItem.ModelId = 0;
-            currentItem.ModelName= "Не выбрана";
+            currentItem.UserId = selectedUserId;
+            currentItem.UserName = "Не выбран";
         }
     }
 
@@ -288,9 +264,9 @@
     {
         int selectedMemberId = int.Parse(e.Value.ToString());
         bool selected = false;
-        foreach(var item in members)
+        foreach (var item in members)
         {
-            if(item.Id == selectedMemberId)
+            if (item.Id == selectedMemberId)
             {
                 currentItem.MemberId = selectedMemberId;
                 currentItem.MemberName = item.Name;
@@ -298,10 +274,11 @@
                 break;
             }
         }
-        if(!selected)
+        if (!selected)
         {
             currentItem.MemberId = 0;
             currentItem.MemberName = "Не выбран";
         }
     }
+
 }

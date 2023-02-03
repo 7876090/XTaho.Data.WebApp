@@ -10,6 +10,7 @@ namespace XTaho.Data.WebApp.Models.Catalogs
     {
         [DataTableColumn("inn", WellknownDataTypes.VARCHAR_15)]
         [Required]
+        [StringLength(13, ErrorMessage = "ИНН не может быть больше 13 знаков!")]
         public string? INN { get; set; }
 
         public MemberModel()
