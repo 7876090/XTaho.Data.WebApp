@@ -1,0 +1,338 @@
+﻿@page "/administration/roles"
+
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Models.Access;
+@using XTaho.Data.WebApp.Models.DataSets;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+@using Microsoft.AspNetCore.Identity;
+
+@inject RolesService RService;
+
+<div class="page">
+    <div class="page__caption">
+        <h4>Ролевая модель</h4>
+    </div>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-success" @onclick="btnAddItemOnclick" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
+        </div>
+    </div>
+    <table class="table caption-top">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Имя</th>
+                <th scope="col">Описание</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in roles)
+            {
+                <tr>
+                    <td><a class="btn__link" @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>
+                    <td>@item.Name</td>
+                    <td>@item.NormalizedName</td>
+                    @*<td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>*@
+                    <td><button class="btn btn-outline-warning" @onclick="@(() => btnShowCRUDOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdropObjects">Объекты доступа</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Роль</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row-1" @onsubmit="btnSaveItemOnClick">
+                    <div class="col">
+                        <label for="name" class="form-label">Имя</label>
+                        <input type="text" class="form-control" id="name" placeholder="введите наименование (обязательно)" @bind="currentItem.Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" placeholder="введите описание пользователя (необязательно)" rows="3" @bind="currentItem.NormalizedName"></textarea>
+                    </div>
+                    <div class=@alertItemClassList role="alert">
+                        <h5 class="alert-heading">
+                            @(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")
+                        </h5>
+                        <hr />
+                        <p>
+                            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="staticBackdropObjects" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropObjectsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropObjectLabel">Объекты доступа @(currentItem.Name)</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Create</th>
+                            <th scope="col">Read</th>
+                            <th scope="col">Update</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in CRUDPermissions)
+                        {
+                            <tr>
+                                <td>@item.ModelName</td>
+                                @if (item.CanCreate)
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-success oi oi-circle-check" @onclick="(() => btnIsPermissionActiveOnClick(item, 0))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                     <button class="btn btn-outline-danger oi oi-circle-x" @onclick="(() => btnIsPermissionActiveOnClick(item, 0))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                @if (item.CanRead)
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-success oi oi-circle-check" @onclick="(() => btnIsPermissionActiveOnClick(item, 1))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-danger oi oi-circle-x" @onclick="(() => btnIsPermissionActiveOnClick(item, 1))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                @if (item.CanUpdate)
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-success oi oi-circle-check" @onclick="(() => btnIsPermissionActiveOnClick(item, 2))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-danger oi oi-circle-x" @onclick="(() => btnIsPermissionActiveOnClick(item, 2))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                @if (item.CanDelete)
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-success oi oi-circle-check" @onclick="(() => btnIsPermissionActiveOnClick(item, 3))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        <button class="btn btn-outline-danger oi oi-circle-x" @onclick="(() => btnIsPermissionActiveOnClick(item, 3))">
+                                            <!--активен -->
+                                        </button>
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<IdentityRole> roles = new List<IdentityRole>();
+    private IdentityRole currentItem = new IdentityRole();
+    private List<CRUD> CRUDPermissions = new List<CRUD>();
+    private bool isNewItem = true;
+    private string errorDescription = "";
+    private string alertItemClassList = "alert xalert";
+
+    private void resetError()
+    {
+        errorDescription = "";
+        alertItemClassList = "alert xalert";
+    }
+
+    private void setError(string eDescription)
+    {
+        errorDescription = eDescription;
+        alertItemClassList = alertItemClassList + " alert-danger xshow";
+    }
+
+    private void setNoError()
+    {
+        errorDescription = "";
+        alertItemClassList = alertItemClassList + " alert-success xshow";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UpdateRoles();
+    }
+
+    private async Task<bool> UpdateRoles()
+    {
+        bool updateResult = true;
+
+        QueryResult<IdentityRole> rolesResult = await RService.GetRolesListAsync();
+        if (rolesResult.Success)
+        {
+            roles = rolesResult.Collection ?? new List<IdentityRole>();
+        }
+        else
+        {
+            updateResult = false;
+            setError(rolesResult.ErrorDescription ?? "Ошибка!");
+        }
+        return updateResult;
+    }
+
+    private void btnAddItemOnclick()
+    {
+        resetError();
+        currentItem = new IdentityRole();
+        isNewItem = true;
+    }
+
+    private void btnEditItemOnClick(IdentityRole item)
+    {
+        resetError();
+        currentItem = item;
+        isNewItem = false;
+    }
+
+    private async Task btnSetDeletionMark(IdentityRole item)
+    {
+        //bool currentStage = item.IsDeleted;
+        //item.IsDeleted = !item.IsDeleted;
+        //ExecuteResult result = await MUService.UpdateMemberUserAsync(item);
+        //if (result.Success) { }
+        //else
+        //{
+        //    item.IsDeleted = currentStage;
+        //}
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await RService.AddRoleAsync(currentItem);
+        }
+        else
+        {
+            result = await RService.UpdateRoleAsync(currentItem);
+        }
+        if (result.Success)
+        {
+            setNoError();
+            await UpdateRoles();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+
+    private async Task btnShowCRUDOnClick(IdentityRole item)
+    {
+        resetError();
+        currentItem = item;
+        QueryResult<CRUD> result = await RService.GetCRUDPermissions(item.Id);
+        if (result.Success)
+        {
+            CRUDPermissions = result.Collection ?? new List<CRUD>();
+        }
+        else
+        {
+            //await Alert(result.ErrorDescription);
+        }
+    }
+
+    private async Task btnSaveCRUDOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await RService.AddRoleAsync(currentItem);
+        }
+        else
+        {
+            result = await RService.UpdateRoleAsync(currentItem);
+        }
+        if (result.Success)
+        {
+            setNoError();
+            await UpdateRoles();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+
+    private void btnIsPermissionActiveOnClick(CRUD item, int permission)
+    {
+        switch (permission)
+        {
+            case 0:
+                item.CanCreate = !item.CanCreate;
+                break;
+            case 1:
+                item.CanRead = !item.CanRead;
+                break;
+            case 2:
+                item.CanUpdate = !item.CanUpdate;
+                break;
+            case 3:
+                item.CanDelete = !item.CanDelete;
+                break;
+        }
+        //dataSet.IsActive = !dataSet.IsActive;
+    }
+
+}
