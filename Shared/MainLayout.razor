@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+@using Microsoft.AspNetCore.Identity;
+@inject NavigationManager Navigation;
+
 <div class="wrapper">
     <div class="sidebar">
         <div class="sidebar__content">
@@ -109,6 +112,21 @@
         </div>
     </div>
     <main class="main">
+        <div class="main__header">
+            <AuthorizeView>
+                <Authorized>
+
+                        <form method="post" action="Identity/Account/LogOut">
+                            <button type="submit" class="nav-link btn btn-link">Выход</button>
+                        </form>
+
+                </Authorized>
+                <NotAuthorized>                    
+                   <a class="btn btn-outline-success" href="Identity/Account/Login">Вход</a>         
+                   <a class="btn btn-outline-info" href="Identity/Account/Register">Регистрация</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
         <div class="main__content">
             @Body
         </div>
@@ -128,6 +146,27 @@
 
     private string administrationSubItemClassList = "sidebar__sub-item";
     private string administrationArrowClassList = "sidebar__link-arrow";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    UserManager<IdentityUser> userManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var currenUser = await userManager.GetUserAsync(user);
+            var userId = currenUser.Id;
+        }
+    }
+
+    private void btnLoginOnClick()
+    {
+        Navigation.NavigateTo("Identity/Account/Login");
+    }
 
     private void nciLinkOnClick()
     {

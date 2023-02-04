@@ -70,15 +70,6 @@
                         <label for="description" class="form-label">Описание</label>
                         <textarea class="form-control" id="description" placeholder="введите описание модели (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
                     </div>
-                    <div class=@alertItemClassList role="alert">
-                        <h5 class="alert-heading">
-                            @(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")
-                        </h5>
-                        <hr />
-                        <p>
-                            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
-                        </p>
-                    </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
                         <button type="submit" class="btn btn-outline-success">Сохранить</button>
@@ -89,32 +80,42 @@
     </div>
 </div>
 
-
-
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class=@toastClassList role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">@(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")</strong>
+            @*<small>11 mins ago</small>*@
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
+        </div>
+    </div>
+</div>
 
 @code {
     private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
     private DeviceModelsModel currentItem = new DeviceModelsModel();
     private bool isNewItem = true;
     private string errorDescription = "";
-    private string alertItemClassList = "alert xalert";
+    private string toastClassList = "toast fade";
 
     private void resetError()
     {
         errorDescription = "";
-        alertItemClassList = "alert xalert";
+        toastClassList = "toast fade";
     }
 
     private void setError(string eDescription)
     {
         errorDescription = eDescription;
-        alertItemClassList = alertItemClassList + " alert-danger xshow";
+        toastClassList = "toast fade show border-danger border-4";
     }
 
     private void setNoError()
     {
         errorDescription = "";
-        alertItemClassList = alertItemClassList + " alert-success xshow";
+        toastClassList = "toast fade show border-success border-3";
     }
 
     protected override async Task OnInitializedAsync()
