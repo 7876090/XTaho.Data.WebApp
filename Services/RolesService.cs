@@ -6,6 +6,8 @@ using XTaho.Data.WebApp.Collections;
 using XTaho.Data.WebApp.DataAccess.Identity;
 using XTaho.Data.WebApp.DataAccess.PostgreSql;
 using XTaho.Data.WebApp.Models.Access;
+using static Humanizer.In;
+using XTaho.Data.WebApp.Models.DataSets;
 
 namespace XTaho.Data.WebApp.Services
 {
@@ -17,7 +19,6 @@ namespace XTaho.Data.WebApp.Services
                 "FROM public.\"AspNetRoles\"\r\n" +
                 $"WHERE \"Id\" != '{DefaultRoles.Operator.Id}';";
             return await Connector.GetRecordsAsync<IdentityRole>(qText);
-
         }
 
         public async Task<ExecuteResult> AddRoleAsync(IdentityRole identityRole)
@@ -35,14 +36,44 @@ namespace XTaho.Data.WebApp.Services
             return await Connector.ExecuteAsync(qText);
         }
 
-        public async Task<QueryResult<CRUD>> GetCRUDPermissions(string roleId)
+        public async Task<QueryResult<CRUD>> GetCRUDPermissionsAsync(string roleId)
         {
             string qText = CRUD.RecordsQueryText(roleId);
             return await Connector.GetRecordsAsync<CRUD>(qText);
         }
-    }
-    
-    
 
-    
+        public async Task<ExecuteResult> AddCRUDPermissionsAsync(List<CRUD> permissions, string roleId)
+        {
+            List<string> qList = new List<string>();
+            foreach (var item in permissions)
+            {
+                qList.Add($"INSERT INTO public.nsi_crud (roleid, modelname, cancreate, canread, canupdate, candelete, createddate)" +
+                    $"VALUES('{roleId}', '{item.ModelName}', '{item.CanCreate}', '{item.CanRead}', '{item.CanUpdate}', '{item.CanDelete}', '{DateTime.Now}');");
+            }
+            string qText = string.Join("", qList);
+
+            return await Connector.ExecuteAsync(qText);
+        }
+
+        public async Task<ExecuteResult> UpdateCRUDPermissionsAsync(List<CRUD> permissions, string roleId)
+        {
+            List<string> qList = new List<string>();
+            foreach (var item in permissions)
+            {
+                qList.Add($"UPDATE public.nsi_crud " +
+                    $"SET roleid='{roleId}', modelname='{item.ModelName}', cancreate='{item.CanCreate}', canread='{item.CanRead}', canupdate='{item.CanUpdate}', candelete='{item.CanDelete}' " +
+                    $"WHERE roleid = '{roleId}' AND modelname='{item.ModelName}';");
+            }
+            string qText = string.Join("", qList);
+
+            return await Connector.ExecuteAsync(qText);
+        }
+
+        public async Task<QueryResult<IdentityUserRolesDataSet>> GetRolesListAsync(string userId)
+        {
+            string qText = IdentityUserRolesDataSet.RecordsQueryText(userId);
+            return await Connector.GetRecordsAsync<IdentityUserRolesDataSet>(qText);
+        }
+
+    }
 }

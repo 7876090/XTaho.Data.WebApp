@@ -35,7 +35,7 @@
                     <td>@item.Name</td>
                     <td>@item.NormalizedName</td>
                     @*<td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>*@
-                    <td><button class="btn btn-outline-warning oi oi-dashboard" @onclick="@(() => btnShowCRUDOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdropObjects"></button></td>
+                    <td><button class="btn btn-outline-warning oi oi-dashboard" @onclick="@(() => btnEditPermissionsOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdropObjects"></button></td>
                 </tr>
             }
         </tbody>
@@ -77,7 +77,6 @@
                 <h1 class="modal-title fs-5" id="staticBackdropObjectLabel">Объекты доступа @(currentItem.Name)</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
                 <table class="table">
                     <thead>
                         <tr>
@@ -164,7 +163,7 @@
                 </table>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    <button type="button" class="btn btn-outline-success" @onclick=btnSavePermissionsOnClick>Сохранить</button>
                 </div>
         </div>
     </div>
@@ -245,18 +244,6 @@
         isNewItem = false;
     }
 
-    private async Task btnSetDeletionMark(IdentityRole item)
-    {
-        //bool currentStage = item.IsDeleted;
-        //item.IsDeleted = !item.IsDeleted;
-        //ExecuteResult result = await MUService.UpdateMemberUserAsync(item);
-        //if (result.Success) { }
-        //else
-        //{
-        //    item.IsDeleted = currentStage;
-        //}
-    }
-
     private async Task btnSaveItemOnClick()
     {
         resetError();
@@ -280,35 +267,41 @@
         }
     }
 
-    private async Task btnShowCRUDOnClick(IdentityRole item)
+    private async Task btnEditPermissionsOnClick(IdentityRole item)
     {
         resetError();
         currentItem = item;
-        QueryResult<CRUD> result = await RService.GetCRUDPermissions(item.Id);
+        isNewItem = true;
+        QueryResult<CRUD> result = await RService.GetCRUDPermissionsAsync(item.Id);
         if (result.Success)
         {
             CRUDPermissions = result.Collection ?? new List<CRUD>();
+            if (CRUDPermissions.Count() > 0)
+            {
+                isNewItem = CRUDPermissions[0].RoleId == null ? true : false;
+            }
         }
         else
         {
-            //await Alert(result.ErrorDescription);
+            setError(result.ErrorDescription ?? "Ошибка!");
         }
     }
 
-    private async Task btnSaveCRUDOnClick()
+    private async Task btnSavePermissionsOnClick()
     {
         resetError();
         ExecuteResult result;
         if (isNewItem)
         {
-            result = await RService.AddRoleAsync(currentItem);
+            result = await RService.AddCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
         }
         else
         {
-            result = await RService.UpdateRoleAsync(currentItem);
+            result = await RService.UpdateCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
         }
         if (result.Success)
         {
+            isNewItem = false;
             setNoError();
             await UpdateRoles();
         }

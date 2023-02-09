@@ -3,6 +3,8 @@ using XTaho.Data.WebApp.Models.Access;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components;
+using XTaho.Data.WebApp.DataAccess.PostgreSql;
+using XTaho.Data.WebApp.Services;
 
 namespace XTaho.Data.WebApp.Models.DataSets
 {
@@ -12,34 +14,40 @@ namespace XTaho.Data.WebApp.Models.DataSets
         [CascadingParameter]
         private Task<AuthenticationState> authenticationStateTask { get; set; }
 
-        private List<MemberModel> memberModels;
+        private List<MemberModel> members;
 
         public List<MemberModel> Members {
             get
             {
-                return memberModels;
+                return members;
+            }
+        }
+
+        public string MembersString { 
+            get
+            {
+                return string.Join(",", members);
             }
         }
 
         public async void Init()
         {
-            memberModels = new List<MemberModel>();
+            members = new List<MemberModel>();
 
             var user = (await authenticationStateTask).User;
             if (user.Identity.IsAuthenticated)
             {
+                string qText = "";
                 var currenUser = await userManager.GetUserAsync(user);            
                 if(user.IsInRole("Operator"))
                 {
-                    // получить все организации
-                    string qText = MembersUsersModel.RecordsQueryTextForOperator();
-                    // установить все разрешения
-
+                    qText = MembersUsersModel.RecordsQueryTextForOperator();
                 }
                 else
                 {
-                    string qText = MembersUsersModel.RecordsQueryText(currenUser.Id);
+                    qText = MembersUsersModel.RecordsQueryText(currenUser.Id);
                 }
+                QueryResult<MemberModel> members = await Connector.GetRecordsAsync<MemberModel>(qText);
             }
         }
 

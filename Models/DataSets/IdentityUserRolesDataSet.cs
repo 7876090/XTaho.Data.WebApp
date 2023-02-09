@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Xml.Linq;
 using XTaho.Data.WebApp.DataAccess.Identity;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace XTaho.Data.WebApp.Models.DataSets
 {
@@ -22,10 +23,10 @@ namespace XTaho.Data.WebApp.Models.DataSets
 
         public static string RecordsQueryText(string? userId)
         {
-            return $"SELECT roles.\"Id\" as roleid, roles.\"Name\" as rolename, roles.\"NormalizedName\" as normalizedname, userroles.\"UserId\" is not null as isactive " +
-                "FROM public.\"AspNetRoles\" as roles " +
-                $"left join(select* from public.\"AspNetUserRoles\" where \"UserId\"='{userId}') as userroles on roles.\"Id\"=userroles.\"RoleId\"" +
-                $"WHERE roles.\"Id\" != '{DefaultRoles.Operator.Id}'";
+            return "SELECT \"Id\" as RoleId, \"Name\" as RoleName, \"NormalizedName\", userroles.checked as IsActive " +
+                "FROM public.\"AspNetRoles\" left join(SELECT case when \"UserId\" is null then false else true end as checked, " +
+                $"\"RoleId\" FROM public.\"AspNetUserRoles\" where \"UserId\" = '{userId}') as userRoles on \"Id\" = userRoles.\"RoleId\" " +
+                $"where \"Id\" != '{DefaultRoles.Operator.Id}'";
         }
     }
 }

@@ -154,7 +154,7 @@
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     [Inject]
-    UserManager<IdentityUser> userManager { get; set; }
+    UserManager<IdentityUser>? userManager { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

@@ -8,6 +8,7 @@
 
 @inject MembersUsersService MUService;
 @inject MembersService MService;
+@inject RolesService RService;
 
 <div class="page">
     <div class="page__caption">
@@ -27,6 +28,7 @@
                 <th scope="col">Участник системы</th>
                 <th scope="col">Описание</th>
                 <th scope="col"></th>
+                <th scope="col"></th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +40,7 @@
                     <td>@item.Name</td>
                     <td>@item.MemberName</td>
                     <td>@item.Description</td>
+                    <td><button class="btn btn-outline-warning oi oi-dashboard" @onclick="@(() => btnEditRolesOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdropObjects"></button></td>
                     <td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>
                 </tr>
             }
@@ -104,6 +107,56 @@
     </div>
 </div>
 
+<div class="modal fade" id="staticBackdropObjects" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropObjectsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropObjectLabel">Объекты доступа @(currentItem.Name)</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Наименование</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in userRoles)
+                    {
+                        <tr>
+                            <td>@item.NormalizedName</td>
+                            @if (item.IsActive)
+                            {
+                                <td>
+                                    <button class="btn btn-outline-success oi oi-circle-check" @onclick="(() => btnIsRoleActiveOnClick(item))">
+                                        <!--активен -->
+                                    </button>
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <button class="btn btn-outline-danger oi oi-circle-x" @onclick="(() => btnIsRoleActiveOnClick(item))">
+                                        <!--активен -->
+                                    </button>
+                                </td>
+                            } 
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-outline-success" @onclick=btnSaveRolesOnClick>Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="liveToast" class=@toastClassList role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
@@ -122,6 +175,7 @@
     private List<MembersUsersModel> users = new List<MembersUsersModel>();
     private List<MemberModel> members = new List<MemberModel>();
     private MembersUsersModel currentItem = new MembersUsersModel();
+    private List<IdentityUserRolesDataSet> userRoles = new List<IdentityUserRolesDataSet>();
     private bool isNewItem = true;
     private string errorDescription = "";
     private string toastClassList = "toast fade";
@@ -285,4 +339,53 @@
         }
     }
 
+    private async Task btnEditRolesOnClick(MembersUsersModel item)
+    {
+        resetError();
+        currentItem = item;
+        isNewItem = true;
+        QueryResult<IdentityUserRolesDataSet> result = await RService.GetRolesListAsync(item.UserId);
+        if (result.Success)
+        {
+            userRoles = result.Collection ?? new List<IdentityUserRolesDataSet>();
+            //CRUDPermissions = result.Collection ?? new List<CRUD>();
+            //if (CRUDPermissions.Count() > 0)
+            //{
+            //    isNewItem = CRUDPermissions[0].RoleId == null ? true : false;
+            //}
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }   
+
+    private void btnIsRoleActiveOnClick(IdentityUserRolesDataSet item)
+    {
+        item.IsActive = !item.IsActive;
+    }
+
+    private async Task btnSaveRolesOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        //if (isNewItem)
+        //{
+        //    result = result = await RService.AddCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
+        //}
+        //else
+        //{
+        //    result = await RService.UpdateCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
+        //}
+        //if (result.Success)
+        //{
+        //    isNewItem = false;
+        //    setNoError();
+        //    await UpdateRoles();
+        //}
+        //else
+        //{
+        //    setError(result.ErrorDescription ?? "Ошибка!");
+        //}
+    }
 }
