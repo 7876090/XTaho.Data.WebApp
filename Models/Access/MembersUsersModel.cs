@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Humanizer;
+using System.Collections.Generic;
 using XTaho.Data.WebApp.Collections.PostgreSql;
 using XTaho.Data.WebApp.Models.BaseModels;
 using XTaho.Data.WebApp.Models.DataSets;
@@ -34,6 +35,19 @@ namespace XTaho.Data.WebApp.Models.Access
                 "FROM nsi_membersusers as membersusers " +
                 "left join nsi_members as members on membersusers.memberid=members.id " +
                 "left join \"AspNetUsers\" as users on membersusers.userid=users.\"Id\";";
+        }
+
+        public static string RecordsQueryText(string userId)
+        {
+            return "SELECT memberid as memberid " +
+                "FROM public.nsi_membersusers " +
+                $"WHERE userid = {userId} and isdeletedand not isdeleted and isactive;";
+        }
+
+        public static string RecordsQueryTextForOperator()
+        {
+            return "SELECT id as memberid " +
+                "FROM public.nsi_members;";
         }
 
         public static string AddRolesListQueryText(string? userId, List<IdentityUserRolesDataSet> roles)

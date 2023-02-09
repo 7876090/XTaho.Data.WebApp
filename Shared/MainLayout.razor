@@ -23,11 +23,13 @@
                         </div>
                     </a>
                     <ul class=@(nciSubItemClassList)>
-                        <li class="sidebar__item">
-                            <a href="/catalogs/members" class="sidebar__link">
-                                <span class="sidebar__link-label">Участники системы</span>
-                            </a>
-                        </li>
+                        <AuthorizeView Roles="Operator">
+                            <li class="sidebar__item">
+                                <a href="/catalogs/members" class="sidebar__link">
+                                    <span class="sidebar__link-label">Участники системы</span>
+                                </a>
+                            </li>
+                        </AuthorizeView>
                         <li class="sidebar__item">
                             <a href="/catalogs/devicemodels" class="sidebar__link">
                                 <span class="sidebar__link-label">Модели устройств</span>
@@ -80,31 +82,33 @@
                         </li>
                     </ul>
                 </li>
-                <li class="sidebar__item">
-                    <a class="sidebar__link" @onclick="administrationLinkOnClick">
-                        <div class="sidebar__link-lcolumn">
-                            <div class="sidebar__link-logo">
-                                <img src="src/img/nci.svg" />
+                <AuthorizeView Roles="Operator">
+                    <li class="sidebar__item">
+                        <a class="sidebar__link" @onclick="administrationLinkOnClick">
+                            <div class="sidebar__link-lcolumn">
+                                <div class="sidebar__link-logo">
+                                    <img src="src/img/nci.svg" />
+                                </div>
+                                <span class="sidebar__link-label">Администрирование</span>
                             </div>
-                            <span class="sidebar__link-label">Администрирование</span>
-                        </div>
-                        <div>
-                            <img class=@(administrationArrowClassList) src="src/img/sidebar_link-arrow.svg" />
-                        </div>
-                    </a>
-                    <ul class=@(administrationSubItemClassList)>
-                        <li class="sidebar__item">
-                            <a href="/administration/users" class="sidebar__link">
-                                <span class="sidebar__link-label">Пользователи системы</span>
-                            </a>
-                        </li>
-                        <li class="sidebar__item">
-                            <a href="/administration/roles" class="sidebar__link">
-                                <span class="sidebar__link-label">Ролевая модель</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                            <div>
+                                <img class=@(administrationArrowClassList) src="src/img/sidebar_link-arrow.svg" />
+                            </div>
+                        </a>
+                        <ul class=@(administrationSubItemClassList)>
+                            <li class="sidebar__item">
+                                <a href="/administration/users" class="sidebar__link">
+                                    <span class="sidebar__link-label">Пользователи системы</span>
+                                </a>
+                            </li>
+                            <li class="sidebar__item">
+                                <a href="/administration/roles" class="sidebar__link">
+                                    <span class="sidebar__link-label">Ролевая модель</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </AuthorizeView>
             </ul>
         </div>
         <div class="sidebar__footer">
@@ -115,11 +119,10 @@
         <div class="main__header">
             <AuthorizeView>
                 <Authorized>
-
                         <form method="post" action="Identity/Account/LogOut">
-                            <button type="submit" class="nav-link btn btn-link">Выход</button>
+                            <span>@context.User.Identity.Name</span>
+                            <button type="submit" class="btn btn-outline-secondary">Выход</button>
                         </form>
-
                 </Authorized>
                 <NotAuthorized>                    
                    <a class="btn btn-outline-success" href="Identity/Account/Login">Вход</a>         

@@ -1,4 +1,5 @@
 ﻿@page "/catalogs/members"
+@attribute [Authorize(Roles = "Operator")]
 
 @using Microsoft.AspNetCore.Identity;
 @using XTaho.Data.WebApp.Models.Catalogs;

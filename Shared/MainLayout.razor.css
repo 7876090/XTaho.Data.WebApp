@@ -147,6 +147,7 @@ main {
     display: flex;
     justify-content: flex-end;
     width: 90%;
+    margin: 10px 0 10px 0;
 }
 
 .main__content {

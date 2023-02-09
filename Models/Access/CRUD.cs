@@ -47,6 +47,28 @@ namespace XTaho.Data.WebApp.Models.Access
 
             return qText;
         }
+        public static string RecordsQueryTextByUserId(string userId)
+        {
+            string qText = "";
+            //string qText = "SELECT smodels.name as modelname, crud.cancreate is not null as cancreate," +
+            //    " crud.canread is not null as canread, crud.canupdate is not null as canupdate, crud.candelete is not null as candelete\r\n" +
+            //    "FROM nsi_systemmodels as smodels\r\n" +
+            //    $"left join (select roleId, modelname, cancreate, canread, canupdate, candelete from nsi_crud where roleId ='{roleId}')" +
+            //    " as crud on smodels.name = crud.modelname\r\nwhere smodels.isdeleted != true;";
 
+            return qText;
+        }
+
+        public static string RecordsQueryTextForOperator(string userId)
+        {
+            string qText = "";
+            //string qText = "SELECT smodels.name as modelname, crud.cancreate is not null as cancreate," +
+            //    " crud.canread is not null as canread, crud.canupdate is not null as canupdate, crud.candelete is not null as candelete\r\n" +
+            //    "FROM nsi_systemmodels as smodels\r\n" +
+            //    $"left join (select roleId, modelname, cancreate, canread, canupdate, candelete from nsi_crud where roleId ='{roleId}')" +
+            //    " as crud on smodels.name = crud.modelname\r\nwhere smodels.isdeleted != true;";
+
+            return qText;
+        }
     }
 }
