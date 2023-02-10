@@ -150,6 +150,10 @@
     private string administrationSubItemClassList = "sidebar__sub-item";
     private string administrationArrowClassList = "sidebar__link-arrow";
 
+    private string userId = "";
+    private string userName = "";
+
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
@@ -158,12 +162,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await authenticationStateTask).User;
-        if (user.Identity.IsAuthenticated)
-        {
-            var currenUser = await userManager.GetUserAsync(user);
-            var userId = currenUser.Id;
-        }
+        //var user = (await authenticationStateTask).User;
+        //if (user.Identity.IsAuthenticated)
+        //{
+        //    var currenUser = await userManager.GetUserAsync(user);
+        //    var userId = currenUser.Id;
+        //}
     }
 
     private void btnLoginOnClick()

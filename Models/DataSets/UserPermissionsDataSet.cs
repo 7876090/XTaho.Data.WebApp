@@ -34,21 +34,21 @@ namespace XTaho.Data.WebApp.Models.DataSets
         {
             members = new List<MemberModel>();
 
-            var user = (await authenticationStateTask).User;
-            if (user.Identity.IsAuthenticated)
-            {
-                string qText = "";
-                var currenUser = await userManager.GetUserAsync(user);            
-                if(user.IsInRole("Operator"))
-                {
-                    qText = MembersUsersModel.RecordsQueryTextForOperator();
-                }
-                else
-                {
-                    qText = MembersUsersModel.RecordsQueryText(currenUser.Id);
-                }
-                QueryResult<MemberModel> members = await Connector.GetRecordsAsync<MemberModel>(qText);
-            }
+            //var user = (await authenticationStateTask).User;
+            //if (user.Identity.IsAuthenticated)
+            //{
+            //    string qText = "";
+            //    var currenUser = await userManager.GetUserAsync(user);            
+            //    if(user.IsInRole("Operator"))
+            //    {
+            //        qText = MembersUsersModel.RecordsQueryTextForOperator();
+            //    }
+            //    else
+            //    {
+            //        qText = MembersUsersModel.RecordsQueryText(currenUser.Id);
+            //    }
+            //    QueryResult<MemberModel> members = await Connector.GetRecordsAsync<MemberModel>(qText);
+            //}
         }
 
     }

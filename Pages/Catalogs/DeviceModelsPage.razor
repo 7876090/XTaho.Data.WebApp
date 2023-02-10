@@ -3,6 +3,7 @@
 @using XTaho.Data.WebApp.Models.Catalogs;
 @using XTaho.Data.WebApp.Services;
 @using XTaho.Data.WebApp.DataAccess.PostgreSql;
+@using XTaho.Data.WebApp.Models.DataSets;
 
 @inject DeviceModelsService DMService;
 
@@ -32,7 +33,8 @@
             @foreach (var item in models)
             {
                 <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
-                    <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>
+                  @*  <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>*@
+                    <td><XTaho.Data.WebApp.Components.ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
                     <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.Number</td>
@@ -99,6 +101,7 @@
     private bool isNewItem = true;
     private string errorDescription = "";
     private string toastClassList = "toast fade";
+    private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
 
     private void resetError()
     {
@@ -120,6 +123,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        userPermissions.Init();
         await UpdateModels();
     }
 
@@ -139,10 +143,10 @@
         isNewItem = true;
     }
 
-    private void btnEditItemOnClick(DeviceModelsModel item)
+    private void btnEditItemOnClick(object item)
     {
         resetError();
-        currentItem = item;
+        currentItem = (DeviceModelsModel)item;
         isNewItem = false;
     }
 

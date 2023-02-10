@@ -1,0 +1,10 @@
+﻿<a class=@(IsDeleted ? "btn__link hidden" : "btn__link") data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" @onclick="@(() => OnClickCallback.InvokeAsync(Item))" /></a>
+
+@code{
+    [Parameter]
+    public bool IsDeleted { get; set; }
+    [Parameter]
+    public object Item { get; set; }
+    [Parameter]
+    public EventCallback<object> OnClickCallback { get; set; }
+}

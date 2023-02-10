@@ -348,11 +348,6 @@
         if (result.Success)
         {
             userRoles = result.Collection ?? new List<IdentityUserRolesDataSet>();
-            //CRUDPermissions = result.Collection ?? new List<CRUD>();
-            //if (CRUDPermissions.Count() > 0)
-            //{
-            //    isNewItem = CRUDPermissions[0].RoleId == null ? true : false;
-            //}
         }
         else
         {
@@ -368,24 +363,14 @@
     private async Task btnSaveRolesOnClick()
     {
         resetError();
-        ExecuteResult result;
-        //if (isNewItem)
-        //{
-        //    result = result = await RService.AddCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
-        //}
-        //else
-        //{
-        //    result = await RService.UpdateCRUDPermissionsAsync(CRUDPermissions, currentItem.Id);
-        //}
-        //if (result.Success)
-        //{
-        //    isNewItem = false;
-        //    setNoError();
-        //    await UpdateRoles();
-        //}
-        //else
-        //{
-        //    setError(result.ErrorDescription ?? "Ошибка!");
-        //}
+        ExecuteResult result = await RService.UpdateRolesListAsync(currentItem.UserId, userRoles);
+        if (result.Success)
+        {
+            setNoError();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
     }
 }

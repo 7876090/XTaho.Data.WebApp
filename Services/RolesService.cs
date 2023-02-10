@@ -75,5 +75,23 @@ namespace XTaho.Data.WebApp.Services
             return await Connector.GetRecordsAsync<IdentityUserRolesDataSet>(qText);
         }
 
+        public async Task <ExecuteResult> UpdateRolesListAsync(string? userId, List<IdentityUserRolesDataSet> roles)
+        {
+            List<string> queryText = new List<string>();
+            queryText.Add($"DELETE FROM public.\"AspNetUserRoles\"\r\nWHERE \"UserId\"='{userId}';");
+
+            foreach (var item in roles)
+            {
+                if (item.IsActive)
+                {
+                    queryText.Add($"INSERT INTO public.\"AspNetUserRoles\"(\"UserId\", \"RoleId\") VALUES('{userId}', '{item.RoleId}');");
+                }
+            }
+
+            string qText = string.Join("", queryText);
+
+            return await Connector.ExecuteAsync(qText);
+        }
+
     }
 }

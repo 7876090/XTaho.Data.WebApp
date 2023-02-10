@@ -152,6 +152,10 @@ main {
     font-size: 1.2rem;
 }
 
+.main__header button, a {
+    margin-left: 10px;
+}
+
 .main__content {
     flex: 1 1 auto;
     display: flex;
