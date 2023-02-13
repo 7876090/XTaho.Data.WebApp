@@ -1,0 +1,6 @@
+﻿<button class="btn btn-outline-success" @onclick="OnClickCallback" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
+
+@code {
+    [Parameter]
+    public EventCallback OnClickCallback { get; set; }
+}

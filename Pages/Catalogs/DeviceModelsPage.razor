@@ -1,5 +1,6 @@
 ﻿@page "/catalogs/devicemodels"
 
+@using XTaho.Data.WebApp.Components;
 @using XTaho.Data.WebApp.Models.Catalogs;
 @using XTaho.Data.WebApp.Services;
 @using XTaho.Data.WebApp.DataAccess.PostgreSql;
@@ -14,7 +15,7 @@
     </div>
     <div class="btn-toolbar" role="toolbar">
         <div class="btn-group" role="group">
-            <button class="btn btn-outline-success" @onclick="btnAddItemOnclick" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
+            <ButtonAdd OnClickCallback="@btnAddItemOnclick" />
         </div>
     </div>
     <table class="table caption-top">
@@ -33,14 +34,13 @@
             @foreach (var item in models)
             {
                 <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
-                  @*  <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>*@
-                    <td><XTaho.Data.WebApp.Components.ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                    <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
                     <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.Number</td>
                     <td>@item.RegistrationNumber</td>
                     <td>@item.Description</td>
-                    <td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>
+                    <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
                 </tr>
             }
         </tbody>
@@ -82,18 +82,7 @@
     </div>
 </div>
 
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="liveToast" class=@toastClassList role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto">@(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")</strong>
-            @*<small>11 mins ago</small>*@
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
-        </div>
-    </div>
-</div>
+<Toast ToastClassList="@toastClassList" ErrorDescription="@errorDescription" />
 
 @code {
     private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
@@ -150,15 +139,16 @@
         isNewItem = false;
     }
 
-    private async Task btnSetDeletionMark(DeviceModelsModel item)
+    private async Task btnSetDeletionMark(object item)
     {
-        bool currentStage = item.IsDeleted;
-        item.IsDeleted = !item.IsDeleted;
-        ExecuteResult result = await DMService.UpdateModelAsync(item);
+        currentItem = (DeviceModelsModel)item;
+        bool currentStage = currentItem.IsDeleted;
+        currentItem.IsDeleted = !currentItem.IsDeleted;
+        ExecuteResult result = await DMService.UpdateModelAsync(currentItem);
         if (result.Success) { }
         else
         {
-            item.IsDeleted = currentStage;
+            currentItem.IsDeleted = currentStage;
         }
     }
 

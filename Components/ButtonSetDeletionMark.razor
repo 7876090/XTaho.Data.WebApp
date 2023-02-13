@@ -1,0 +1,8 @@
+﻿<a class="btn__link" @onclick="@(() => OnClickCallback.InvokeAsync(Item))"><img src="src/img/btn/delete.svg" /></a>
+
+@code {
+    [Parameter]
+    public object? Item { get; set; }
+    [Parameter]
+    public EventCallback<object> OnClickCallback { get; set; }
+}
