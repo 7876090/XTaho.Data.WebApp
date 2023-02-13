@@ -48,5 +48,14 @@ namespace XTaho.Data.WebApp.Models.Catalogs
                 "left join nsi_devicemodels as models on devices.modelid = models.id " +
                 "left join nsi_members as members on devices.memberid  = members.id  ORDER BY id ASC";
         }
+        public string RecordsQueryText(string members)
+        {
+            return "SELECT devices.serialnumber, devices.firmwareversion, devices.firmwareupdatedate, devices.filesmask, devices.modelid, devices.name," +
+                "devices.description, devices.id, devices.createddate, devices.isdeleted, devices.vehicleregistrationnumber, devices.memberid, models.name as ModelName" +
+                ",members.name as membername " +
+                "FROM nsi_devices as devices " +
+                "left join nsi_devicemodels as models on devices.modelid = models.id " +
+                $"left join nsi_members as members on devices.memberid  = members.id where devices.memberid in ({members}) ORDER BY id ASC";
+        }
     }
 }

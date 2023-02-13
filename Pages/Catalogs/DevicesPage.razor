@@ -1,12 +1,15 @@
 ﻿@page "/catalogs/devices"
+@attribute [Authorize]
 
+@using Microsoft.AspNetCore.Identity;
 @using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Models.DataSets;
 @using XTaho.Data.WebApp.Services;
 @using XTaho.Data.WebApp.DataAccess.PostgreSql;
+@using XTaho.Data.WebApp.Components;
 
 @inject DevicesService DService;
 @inject DeviceModelsService DMService;
-@inject MembersService MService;
 
 <div class="page">
     <div class="page__caption">
@@ -14,7 +17,13 @@
     </div>
     <div class="btn-toolbar" role="toolbar">
         <div class="btn-group" role="group">
-            <button class="btn btn-outline-success" @onclick="btnAddItemOnclick" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
+            @if (userPermissions.CRUDs != null)
+            {
+                @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanCreate)) != null)
+                {
+                    <ButtonAdd OnClickCallback="@btnAddItemOnclick" />
+                }
+            }
         </div>
     </div>
     <table class="table caption-top">
@@ -37,7 +46,21 @@
             @foreach (var item in devices)
             {
                 <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
-                    <td><a class=@(item.IsDeleted ? "btn__link hidden" : "btn__link") @onclick="@(() => btnEditItemOnClick(item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><img src="src/img/btn/edit.svg" /></a></td>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanUpdate)) != null)
+                        {
+                            <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
                     <td>@item.Id</td>
                     @*<td>@item.Name</td>*@
                     <td>@item.SerialNumber</td>
@@ -47,7 +70,21 @@
                     <td>@item.FirmwareVersion</td>
                     <td>@item.FirmwareUpdateDate</td>
                     <td>@item.Description</td>
-                    <td><a class="btn__link" @onclick="@(() => btnSetDeletionMark(item))"><img src="src/img/btn/delete.svg" /></a></td>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanDelete)) != null)
+                        {
+                            <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
                 </tr>
             }
         </tbody>
@@ -129,20 +166,10 @@
     </div>
 </div>
 
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="liveToast" class=@toastClassList role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto">@(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")</strong>
-            @*<small>11 mins ago</small>*@
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
-        </div>
-    </div>
-</div>
+<Toast ToastClassList="@toastClassList" ErrorDescription="@errorDescription" />
 
 @code {
+    private string modelName = "nsi_devices";
     private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
     private List<DeviceModel> devices = new List<DeviceModel>();
     private List<MemberModel> members = new List<MemberModel>();
@@ -150,6 +177,14 @@
     private bool isNewItem = true;
     private string errorDescription = "";
     private string toastClassList = "toast fade";
+    private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    UserManager<IdentityUser> userManager { get; set; }
+
 
     private void resetError()
     {
@@ -171,16 +206,33 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await UpdateDevices();
+        var user = (await authenticationStateTask).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var currenUser = await userManager.GetUserAsync(user);
+            var userId = currenUser.Id;
+
+            var result = await userPermissions.Init(currenUser, user.IsInRole("Operator"));
+            if(result.Success)
+            {
+                await UpdateDevices();
+            }
+            else
+            {
+                setError(result.ErrorDescription ?? "Ошибка!");
+            }
+        }        
     }
 
     private async Task<bool> UpdateDevices()
     {
         bool updateResult = true;
-        QueryResult<DeviceModel> result = await DService.GetDevicesListAsync();
+        QueryResult<DeviceModel> result = await DService.GetDevicesListAsync(userPermissions.MembersString);
         if (result.Success)
         {
             devices = result.Collection ?? new List<DeviceModel>();
+            members = userPermissions.Members;
+            members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
         }
         else
         {
@@ -198,17 +250,17 @@
             updateResult = false;
             setError(modelsResult.ErrorDescription ?? "Ошибка!");
         }
-        QueryResult<MemberModel> membersResult = await MService.GetMembersListAsync();
-        if (membersResult.Success)
-        {
-            members = membersResult.Collection ?? new List<MemberModel>();
-            members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
-        }
-        else
-        {
-            updateResult = false;
-            setError(membersResult.ErrorDescription ?? "Ошибка!");
-        }
+        //QueryResult<MemberModel> membersResult = await MService.GetMembersListAsync();
+        //if (membersResult.Success)
+        //{
+        //    members = membersResult.Collection ?? new List<MemberModel>();
+        //    members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
+        //}
+        //else
+        //{
+        //    updateResult = false;
+        //    setError(membersResult.ErrorDescription ?? "Ошибка!");
+        //}
         return updateResult;
     }
 
@@ -219,22 +271,23 @@
         isNewItem = true;
     }
 
-    private void btnEditItemOnClick(DeviceModel item)
+    private void btnEditItemOnClick(object item)
     {
         resetError();
-        currentItem = item;
+        currentItem = (DeviceModel)item;
         isNewItem = false;
     }
 
-    private async Task btnSetDeletionMark(DeviceModel item)
+    private async Task btnSetDeletionMark(object item)
     {
-        bool currentStage = item.IsDeleted;
-        item.IsDeleted = !item.IsDeleted;
-        ExecuteResult result = await DService.UpdateDeviceAsync(item);
+        currentItem = (DeviceModel)item;
+        bool currentStage = currentItem.IsDeleted;
+        currentItem.IsDeleted = !currentItem.IsDeleted;
+        ExecuteResult result = await DService.UpdateDeviceAsync(currentItem);
         if (result.Success) { }
         else
         {
-            item.IsDeleted = currentStage;
+            currentItem.IsDeleted = currentStage;
         }
     }
 

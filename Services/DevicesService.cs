@@ -5,10 +5,10 @@ namespace XTaho.Data.WebApp.Services
 {
     public class DevicesService
     {
-        public async Task<QueryResult<DeviceModel>> GetDevicesListAsync()
+        public async Task<QueryResult<DeviceModel>> GetDevicesListAsync(string members)
         {
             DeviceModel device = new DeviceModel();
-            string qText = device.RecordsQueryText();
+            string qText = device.RecordsQueryText(members);
             return await Connector.GetRecordsAsync<DeviceModel>(qText);
         }
 

@@ -49,24 +49,18 @@ namespace XTaho.Data.WebApp.Models.Access
         }
         public static string RecordsQueryTextByUserId(string userId)
         {
-            string qText = "";
-            //string qText = "SELECT smodels.name as modelname, crud.cancreate is not null as cancreate," +
-            //    " crud.canread is not null as canread, crud.canupdate is not null as canupdate, crud.candelete is not null as candelete\r\n" +
-            //    "FROM nsi_systemmodels as smodels\r\n" +
-            //    $"left join (select roleId, modelname, cancreate, canread, canupdate, candelete from nsi_crud where roleId ='{roleId}')" +
-            //    " as crud on smodels.name = crud.modelname\r\nwhere smodels.isdeleted != true;";
+            string qText = "select modelname, bool_or(cancreate) as cancreate, bool_or(canread) as canread, bool_or(canupdate) as canupdate, bool_or(candelete) as candelete " +
+                "from public.nsi_crud " +
+                $"where roleid in (select \"RoleId\" from \"AspNetUserRoles\" where \"UserId\" = '{userId}') " +
+                "group by modelname;";
 
             return qText;
         }
 
-        public static string RecordsQueryTextForOperator(string userId)
+        public static string RecordsQueryTextForOperator()
         {
-            string qText = "";
-            //string qText = "SELECT smodels.name as modelname, crud.cancreate is not null as cancreate," +
-            //    " crud.canread is not null as canread, crud.canupdate is not null as canupdate, crud.candelete is not null as candelete\r\n" +
-            //    "FROM nsi_systemmodels as smodels\r\n" +
-            //    $"left join (select roleId, modelname, cancreate, canread, canupdate, candelete from nsi_crud where roleId ='{roleId}')" +
-            //    " as crud on smodels.name = crud.modelname\r\nwhere smodels.isdeleted != true;";
+            string qText = "SELECT \"name\" as modelname, true as cancreate, true as canread, true as canupdate, true as candelete " +
+                "FROM public.nsi_systemmodels;";
 
             return qText;
         }

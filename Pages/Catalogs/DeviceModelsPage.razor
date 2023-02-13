@@ -1,5 +1,6 @@
 ﻿@page "/catalogs/devicemodels"
 
+@using Microsoft.AspNetCore.Identity;
 @using XTaho.Data.WebApp.Components;
 @using XTaho.Data.WebApp.Models.Catalogs;
 @using XTaho.Data.WebApp.Services;
@@ -8,6 +9,7 @@
 
 @inject DeviceModelsService DMService;
 
+<CascadingValue Name="UserPermissions" Value="userPermissions"><Auth /></CascadingValue>
 
 <div class="page">
     <div class="page__caption">
@@ -15,7 +17,13 @@
     </div>
     <div class="btn-toolbar" role="toolbar">
         <div class="btn-group" role="group">
-            <ButtonAdd OnClickCallback="@btnAddItemOnclick" />
+            @if (userPermissions.CRUDs != null)
+            {
+                @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanCreate)) != null)
+                {
+                    <ButtonAdd OnClickCallback="@btnAddItemOnclick" />
+                }
+            }
         </div>
     </div>
     <table class="table caption-top">
@@ -34,13 +42,41 @@
             @foreach (var item in models)
             {
                 <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
-                    <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanUpdate)) != null)
+                        {
+                            <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
                     <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.Number</td>
                     <td>@item.RegistrationNumber</td>
                     <td>@item.Description</td>
-                    <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanDelete)) != null)
+                        {
+                            <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
                 </tr>
             }
         </tbody>
@@ -85,12 +121,19 @@
 <Toast ToastClassList="@toastClassList" ErrorDescription="@errorDescription" />
 
 @code {
+    private string modelName = "nsi_devicemodels";
     private List<DeviceModelsModel> models = new List<DeviceModelsModel>();
     private DeviceModelsModel currentItem = new DeviceModelsModel();
     private bool isNewItem = true;
     private string errorDescription = "";
     private string toastClassList = "toast fade";
     private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    UserManager<IdentityUser> userManager { get; set; }
 
     private void resetError()
     {
@@ -112,8 +155,22 @@
 
     protected override async Task OnInitializedAsync()
     {
-        userPermissions.Init();
-        await UpdateModels();
+        var user = (await authenticationStateTask).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var currenUser = await userManager.GetUserAsync(user);
+            var userId = currenUser.Id;
+
+            var result = await userPermissions.Init(currenUser, user.IsInRole("Operator"));
+            if (result.Success)
+            {
+                await UpdateModels();
+            }
+            else
+            {
+                setError(result.ErrorDescription ?? "Ошибка!");
+            }
+        }
     }
 
     private async Task UpdateModels()

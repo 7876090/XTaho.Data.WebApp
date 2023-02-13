@@ -10,7 +10,7 @@ namespace XTaho.Data.WebApp.DataAccess.PostgreSql
 {
     public class Connector
     {
-        public const string ConnectionStringParameterName = "NSIConnectionLocal";
+        public const string ConnectionStringParameterName = "NSIConnectionServerAuto";
         private static string? GetConnectionString()
         {
             IConfigurationRoot configuration = new ConfigurationBuilder()

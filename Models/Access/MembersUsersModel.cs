@@ -39,14 +39,13 @@ namespace XTaho.Data.WebApp.Models.Access
 
         public static string RecordsQueryText(string userId)
         {
-            return "SELECT memberid as memberid " +
-                "FROM public.nsi_membersusers " +
-                $"WHERE userid = {userId} and isdeletedand not isdeleted and isactive;";
+            return "select * from nsi_members nm " +
+                $"where id in (select memberid as id FROM public.nsi_membersusers WHERE userid = '{userId}');";
         }
 
         public static string RecordsQueryTextForOperator()
         {
-            return "SELECT id as memberid " +
+            return "SELECT * " +
                 "FROM public.nsi_members;";
         }
 
