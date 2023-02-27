@@ -9,8 +9,6 @@
 
 @inject DeviceModelsService DMService;
 
-<CascadingValue Name="UserPermissions" Value="userPermissions"><Auth /></CascadingValue>
-
 <div class="page">
     <div class="page__caption">
         <h4>Модели устройств</h4>
@@ -163,14 +161,14 @@
 
             var result = await userPermissions.Init(currenUser, user.IsInRole("Operator"));
             if (result.Success)
-            {
-                await UpdateModels();
+            {                
             }
             else
             {
                 setError(result.ErrorDescription ?? "Ошибка!");
             }
         }
+        await UpdateModels();
     }
 
     private async Task UpdateModels()
