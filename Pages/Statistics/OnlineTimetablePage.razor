@@ -1,12 +1,26 @@
 ﻿@page "/statistics/online-timetable"
 
-<div class="page">
-    <div class="page__caption">
-        <h4>On-line табло</h4>
-    </div>
-</div>
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.Components;
+@using XTaho.Data.WebApp.Collections.Inbox;
 
+@inject OnlineClientService OClient;
 
 @code {
+    private ServerDescriptionResult? serverDescriptionResult;
 
+    protected override async Task OnInitializedAsync()
+    {
+        if(await UpdateServerStatus())
+        {}
+    }
+
+    private async Task<bool> UpdateServerStatus()
+    {
+        var result = await OClient.CheckServerAvailability();
+
+        serverDescriptionResult = await OClient.GetServerDescription();
+
+        return result;
+    }
 }

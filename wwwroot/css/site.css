@@ -1,11 +1,43 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+@font-face {
+    font-family: 'inter-regular';
+    src: url('fonts/inter/static/inter-regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'inter-medium';
+    src: url('fonts/inter/static/inter-medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'inter-thin';
+    src: url('fonts/inter/static/inter-thin.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'inter-light';
+    src: url('fonts/inter/static/inter-light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'inter-extralight';
+    src: url('fonts/inter/static/inter-extralight.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'inter-bold';
+    src: url('fonts/inter/static/inter-bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'raleway-extralight';
+    src: url('fonts/raleway/static/raleway-extralight.ttf') format('truetype');
+}
+
 html, body {
-    font-family: 'Inter';
-    font-style: normal;
-/*    font-weight: 200;
-    font-size: 20px;
-    line-height: 24px;*/
+    font-family: inter-extralight;
+    font-size: 18px;
     margin: 0;
     padding: 0;
 }
@@ -35,7 +67,7 @@ a {
         transition-duration: 800ms;
     }
 
-    .btn__link>img:hover {
+    .btn__link > img:hover {
         height: 23px;
         width: 23px;
     }
@@ -52,7 +84,7 @@ a {
 .page {
     display: flex;
     flex-direction: column;
-    padding: 5px;
+    padding: 15px;
 }
 
 .page__caption {

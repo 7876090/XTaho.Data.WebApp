@@ -50,6 +50,15 @@ builder.Services.AddSingleton<MembersUsersService>();
 builder.Services.AddSingleton<DevicesService>();
 builder.Services.AddSingleton<DeviceModelsService>();
 
+builder.Services.AddSingleton<ScheduleService>();
+
+builder.Services.AddSingleton<NomenclatureService>();
+
+builder.Services.AddSingleton<OrderService>();
+
+builder.Services.AddSingleton<OnlineClientService>();
+
+
 var app = builder.Build();
 
 // Create default users and roles

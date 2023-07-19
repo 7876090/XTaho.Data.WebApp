@@ -1,0 +1,6 @@
+﻿<a class="btn__link m-1" @onclick="@(() => OnClickCallback.InvokeAsync())"><img src="src/img/btn/plus.svg" /></a>
+
+@code {
+    [Parameter]
+    public EventCallback<object> OnClickCallback { get; set; }
+}

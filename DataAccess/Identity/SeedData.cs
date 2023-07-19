@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using System.Xml.Linq;
+using XTaho.Data.WebApp.DataAccess.PostgreSql;
+using XTaho.Data.WebApp.Models.Catalogs;
+using XTaho.Data.WebApp.Services;
 
 namespace XTaho.Data.WebApp.DataAccess.Identity
 {
@@ -26,6 +29,20 @@ namespace XTaho.Data.WebApp.DataAccess.Identity
                 {
                     var Operator = await userManager.FindByIdAsync(DefaultUsers.Operator.Id);
                     await userManager.AddToRoleAsync(Operator, DefaultRoles.Operator.Name);
+                }
+            }
+
+            CatalogsService ctService = new CatalogsService();
+
+            QueryResult<OrderStatusesModel> statusesResult = await ctService.GetOrderStatusesListAsync();
+            if (statusesResult.Success)
+            {
+                List<OrderStatusesModel> statuses = statusesResult.Collection ?? new List<OrderStatusesModel>();
+                if (statuses.Count == 0)
+                {
+                    string qText = "INSERT INTO public.nsi_orderstatuses (\"name\", description, createddate, isdeleted) VALUES('Новый', 'Заказ создан, но не подтвержден.', now(), false); " +
+                        "INSERT INTO public.nsi_orderstatuses (\"name\", description, createddate, isdeleted) VALUES('В работе', 'Заказ подтвержден.', now(), false);";
+                    await Connector.ExecuteAsync(qText);
                 }
             }
         }

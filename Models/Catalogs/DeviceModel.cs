@@ -7,7 +7,7 @@ namespace XTaho.Data.WebApp.Models.Catalogs
     [DataTable("NSI_Devices")]
     public class DeviceModel : CatalogModel
     {
-        [DataTableColumn("SerialNumber", WellknownDataTypes.VARCHAR_15)]
+        [DataTableColumn("SerialNumber", WellknownDataTypes.VARCHAR_30)]
         public string? SerialNumber { get; set; }
 
         [DataTableColumn("FirmwareVersion", WellknownDataTypes.VARCHAR_15)]
@@ -28,6 +28,9 @@ namespace XTaho.Data.WebApp.Models.Catalogs
         [DataTableColumn("MemberId", WellknownDataTypes.INTEGER)]
         public int MemberId { get; set; }
 
+        [DataTableColumn("RegisteredOnline", WellknownDataTypes.BOOL_NOT_NULL_DEF_F)]
+        public bool RegisteredOnline { get; set; }
+
         public string? ModelName { get; set; }
         public string? MemberName { get; set; }
         public string? VIN { get; set; }
@@ -42,7 +45,7 @@ namespace XTaho.Data.WebApp.Models.Catalogs
         public string RecordsQueryText()
         {
             return "SELECT devices.serialnumber, devices.firmwareversion, devices.firmwareupdatedate, devices.filesmask, devices.modelid, devices.name," +
-                "devices.description, devices.id, devices.createddate, devices.isdeleted, devices.vehicleregistrationnumber, devices.memberid, models.name as ModelName" +
+                "devices.description, devices.id, devices.createddate, devices.isdeleted, devices.vehicleregistrationnumber, devices.memberid, devices.registeredonline as registeredonline, models.name as ModelName" +
                 ",members.name as membername " +
                 "FROM nsi_devices as devices " +
                 "left join nsi_devicemodels as models on devices.modelid = models.id " +
@@ -51,7 +54,7 @@ namespace XTaho.Data.WebApp.Models.Catalogs
         public string RecordsQueryText(string members)
         {
             return "SELECT devices.serialnumber, devices.firmwareversion, devices.firmwareupdatedate, devices.filesmask, devices.modelid, devices.name," +
-                "devices.description, devices.id, devices.createddate, devices.isdeleted, devices.vehicleregistrationnumber, devices.memberid, models.name as ModelName" +
+                "devices.description, devices.id, devices.createddate, devices.isdeleted, devices.vehicleregistrationnumber, devices.memberid, devices.registeredonline as registeredonline, models.name as ModelName" +
                 ",members.name as membername " +
                 "FROM nsi_devices as devices " +
                 "left join nsi_devicemodels as models on devices.modelid = models.id " +

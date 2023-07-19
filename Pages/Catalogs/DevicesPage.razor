@@ -10,6 +10,7 @@
 
 @inject DevicesService DService;
 @inject DeviceModelsService DMService;
+@inject OnlineClientService OService;
 
 <div class="page">
     <div class="page__caption">
@@ -39,6 +40,7 @@
                 <th scope="col">Версия ПО</th>
                 <th scope="col">Дата обновления ПО</th>
                 <th scope="col">Описание</th>
+                <th scope="col"></th>
                 <th scope="col"></th>
             </tr>
         </thead>
@@ -85,6 +87,14 @@
                     {
                         <td></td>
                     }
+                    @if(item.RegisteredOnline)
+                    {
+                        <td><button type="button" class="btn btn-info" disabled>Р</button></td>
+                    }
+                    else
+                    {
+                        <td><button type="button" class="btn btn-outline-info" @onclick="(() => btnRegisterOnline(item))">Р</button></td>
+                    }
                 </tr>
             }
         </tbody>
@@ -106,7 +116,7 @@
                     </div>
                     <div class="col">
                         <label for="number" class="form-label">Серийный номер</label>
-                        <input type="text" class="form-control" id="number" placeholder="серийный номер(обязательно)" @bind="currentItem.SerialNumber" required>
+                        <input type="text" class="form-control" id="number" placeholder="0010000000/01 01/01/FF" @bind="currentItem.SerialNumber" required>
                     </div>
                     <div class="col">
                         <label for="model" class="form-label">Модель устройства</label>
@@ -180,10 +190,10 @@
     private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
 
     [Inject]
-    UserManager<IdentityUser> userManager { get; set; }
+    UserManager<IdentityUser>? userManager { get; set; }
 
 
     private void resetError()
@@ -288,6 +298,23 @@
         else
         {
             currentItem.IsDeleted = currentStage;
+        }
+    }
+
+    private async Task btnRegisterOnline(DeviceModel item)
+    {
+        var serialNumber = item.SerialNumber ?? "";
+        var res = await OService.RegisterDevice(serialNumber);
+        if (res)
+        {
+            currentItem = item;
+            currentItem.RegisteredOnline = true;
+            ExecuteResult result = await DService.UpdateDeviceAsync(currentItem);
+            if (result.Success) { }
+            else
+            {
+                setError("Ошибка реистрации утсройства!");
+            }
         }
     }
 

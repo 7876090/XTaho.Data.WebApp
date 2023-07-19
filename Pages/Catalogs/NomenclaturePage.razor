@@ -1,0 +1,178 @@
+﻿@page "/catalogs/nomenclature"
+
+@using XTaho.Data.WebApp.Components;
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+
+@inject NomenclatureService NService;
+
+<div class="page">
+    <div class="page__caption">
+        <h4>Продукты и услуги</h4>
+    </div>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            <button class="btn btn-outline-success" @onclick="btnAddItemOnclick" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</button>
+        </div>
+    </div>
+    <table class="table caption-top">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Артикул</th>
+                <th scope="col">Наименование</th>
+                <th scope="col">Описание</th>
+                <th scope="col">Цена</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in nomenclature)
+            {
+                <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
+                    <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                    <td>@item.VendorCode</td>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@(string.Format("{0:f}", item.Price / 100))</td>
+                    <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">@(isNewItem ? "" : currentItem.Name) </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row-1" @onsubmit="btnSaveItemOnClick">
+                    <div class="col">
+                        <label for="name" class="form-label">Наименование</label>
+                        <input type="text" class="form-control" id="name" placeholder="введите наименование (обязательно)" @bind="currentItem.Name" required>
+                    </div>
+                    <div class="col">
+                        <label for="vendor" class="form-label">Артикул</label>
+                        <input type="text" class="form-control" id="vendor" maxlength="50" placeholder="артикул" @bind="currentItem.VendorCode">
+                    </div>
+                    <div class="col">
+                        <label for="price" class="form-label">Цена (10050 - 50 копейки)</label>
+                        <input type="number" class="form-control" id="price" @bind="currentItem.Price">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" placeholder="введите описание (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<Toast ToastClassList="@toastClassList" ErrorDescription="@errorDescription" />
+
+@code {
+    private List<NomenclatureModel> nomenclature = new List<NomenclatureModel>();
+    private NomenclatureModel currentItem = new NomenclatureModel();
+    private bool isNewItem = true;
+    private string errorDescription = "";
+    private string toastClassList = "toast fade";
+
+
+    private void resetError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade";
+    }
+
+    private void setError(string eDescription)
+    {
+        errorDescription = eDescription;
+        toastClassList = "toast fade show border-danger border-4";
+    }
+
+    private void setNoError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade show border-success border-3";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        resetError();
+
+        await UpdateNomenclature();
+    }
+
+    private async Task UpdateNomenclature()
+    {
+        QueryResult<NomenclatureModel> result = await NService.GetNomenclatureListAsync();
+        if (result.Success)
+        {
+            nomenclature = result.Collection ?? new List<NomenclatureModel>();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+
+    private void btnAddItemOnclick()
+    {
+        resetError();
+        currentItem = new NomenclatureModel();
+        isNewItem = true;
+    }
+
+    private void btnEditItemOnClick(object item)
+    {
+        resetError();
+        currentItem = (NomenclatureModel)item;
+        isNewItem = false;
+    }
+
+    private async Task btnSetDeletionMark(object item)
+    {
+        currentItem = (NomenclatureModel)item;
+        bool currentStage = currentItem.IsDeleted;
+        currentItem.IsDeleted = !currentItem.IsDeleted;
+        ExecuteResult result = await NService.UpdateNomenclatureAsync(currentItem);
+        if (result.Success) { }
+        else
+        {
+            currentItem.IsDeleted = currentStage;
+        }
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await NService.AddNomenclatureAsync(currentItem);
+        }
+        else
+        {
+            result = await NService.UpdateNomenclatureAsync(currentItem);
+        }
+        if (result.Success)
+        {
+            setNoError();
+            await UpdateNomenclature();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+}

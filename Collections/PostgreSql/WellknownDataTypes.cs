@@ -6,6 +6,7 @@
         public const string INTEGER = "integer";
         public const string BIGINT = "bigint";
         public const string VARCHAR_15 = "varchar(15)";
+        public const string VARCHAR_30 = "varchar(30)";
         public const string VARCHAR_50 = "varchar(50)";
         public const string VARCHAR_100 = "varchar(100)";
         public const string VARCHAR_255 = "varchar(255)";
@@ -20,5 +21,7 @@
         public const string BOOL_NOT_NULL_DEF_F = "bool NOT NULL DEFAULT false";
         public const string BOOL_NOT_NULL_DEF_T = "bool NOT NULL DEFAULT true";
         public const string TEXT = "text";
+        public const string SMALLINT = "smallint";
+        public const string BIGSERIAL_PRIMARY_KEY = "bigserial PRIMARY KEY";
     }
 }

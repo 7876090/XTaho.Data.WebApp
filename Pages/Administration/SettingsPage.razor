@@ -1,0 +1,23 @@
+﻿@page "/administration/settings"
+
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.Components;
+@using XTaho.Data.WebApp.Collections.Inbox;
+
+@inject OnlineClientService OClient;
+
+<div class="page">
+    <div class="page__caption">
+        <h4>On-line табло</h4>
+    </div>
+</div>
+
+@code {
+    private ServerDescription? serverDescription;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ServerDescriptionResult result = await OClient.GetServerDescription();
+        serverDescription = result.ServerDescription;
+    }
+}

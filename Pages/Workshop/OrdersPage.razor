@@ -1,0 +1,272 @@
+﻿@page "/workshop/orders"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity;
+@using XTaho.Data.WebApp.Components;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+@using XTaho.Data.WebApp.Models.DataSets;
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Models.Workshop;
+@using XTaho.Data.WebApp.Services;
+
+@inject OrderService OService;
+
+<div class="page">
+    <div class="page__caption">
+        <h4>Заказы ЗИП</h4>
+    </div>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group" role="group">
+            @if (userPermissions.CRUDs != null)
+            {
+                @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanCreate)) != null)
+                {
+                    <ButtonAdd OnClickCallback="@btnAddItemOnclick" />
+                }
+            }
+        </div>
+    </div>
+    <table class="table caption-top">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">#</th>
+                <th scope="col">Дата</th>
+                <th scope="col">Участник системы</th>
+                <th scope="col">Описание</th>
+                <th scope="col">Статус</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in orders)
+            {
+                <tr class=@(item.IsDeleted ? "tr deletion-mark" : "tr")>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanUpdate)) != null)
+                        {
+                            <td><ButtonEdit IsDeleted=item.IsDeleted OnClickCallback="@btnEditItemOnClick" Item="@item" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+                    <td>@item.Id</td>
+                    @*<td>@item.Name</td>*@
+                    <td>@item.CreatedDate</td>
+                    <td>@item.MemberName</td>
+                    <td>@item.Description</td>
+                    <td>@item.StatusName</td>
+                    @if (userPermissions.CRUDs != null)
+                    {
+                        @if (userPermissions.CRUDs.Find(c => (c.ModelName == modelName & c.CanDelete)) != null)
+                        {
+                            <td><ButtonSetDeletionMark Item="@item" OnClickCallback="@btnSetDeletionMark" /></td>
+                        }
+                        else
+                        {
+                            <td></td>
+                        }
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">@(isNewItem ? "Новый заказ" : "#" + currentItem.Id) </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row-1" @onsubmit="btnSaveItemOnClick">
+                    <div class="col">
+                        <label for="member" class="form-label">Участник</label>
+                        <select class="form-select" id="member" @onchange="selectMemberOnChange">
+                            @foreach (var member in members)
+                            {
+                                if (currentItem.MemberId == member.Id)
+                                {
+                                    <option value="@member.Id" selected>@member.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@member.Id">@member.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" placeholder="введите описание (необязательно)" rows="3" @bind="currentItem.Description"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<Toast ToastClassList="@toastClassList" ErrorDescription="@errorDescription" />
+
+@code {
+    private string modelName = "nsi_orders";
+    private OrderModel currentItem = new OrderModel();
+    private List<OrderModel> orders = new List<OrderModel>();
+    private List<MemberModel> members = new List<MemberModel>();
+    private bool isNewItem = true;
+    private string errorDescription = "";
+    private string toastClassList = "toast fade";
+    private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    UserManager<IdentityUser> userManager { get; set; }
+
+    private void resetError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade";
+    }
+
+    private void setError(string eDescription)
+    {
+        errorDescription = eDescription;
+        toastClassList = "toast fade show border-danger border-4";
+    }
+
+    private void setNoError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade show border-success border-3";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var currenUser = await userManager.GetUserAsync(user);
+            var userId = currenUser.Id;
+
+            var result = await userPermissions.Init(currenUser, user.IsInRole("Operator"));
+            if (result.Success)
+            {
+                await UpdateOrders();
+            }
+            else
+            {
+                setError(result.ErrorDescription ?? "Ошибка!");
+            }
+        }
+    }
+
+    private async Task<bool> UpdateOrders()
+    {
+        bool updateResult = true;
+        QueryResult<OrderModel> result = await OService.GetOrdersListAsync(userPermissions.MembersString);
+        if (result.Success)
+        {
+            orders = result.Collection ?? new List<OrderModel>();
+            members = userPermissions.Members;
+            members.Insert(0, new MemberModel() { Name = "Выберите владельца" });
+        }
+        else
+        {
+            updateResult = false;
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+
+        return updateResult;        
+    }
+
+    private void btnAddItemOnclick()
+    {
+        resetError();
+        currentItem = new OrderModel();
+        isNewItem = true;
+    }
+
+    private void btnEditItemOnClick(object item)
+    {
+        resetError();
+        currentItem = (OrderModel)item;
+        isNewItem = false;
+    }
+
+    private async Task btnSetDeletionMark(object item)
+    {
+        currentItem = (OrderModel)item;
+        bool currentStage = currentItem.IsDeleted;
+        currentItem.IsDeleted = !currentItem.IsDeleted;
+        ExecuteResult result = await OService.UpdateOrderAsync(currentItem);
+        if (result.Success) { }
+        else
+        {
+            currentItem.IsDeleted = currentStage;
+        }
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await OService.AddOrderAsync(currentItem);
+        }
+        else
+        {
+            result = await OService.UpdateOrderAsync(currentItem);
+        }
+        if (result.Success)
+        {
+            setNoError();
+            await UpdateOrders();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+
+    private void selectMemberOnChange(ChangeEventArgs e)
+    {
+        int selectedMemberId = int.Parse(e.Value.ToString());
+        bool selected = false;
+        foreach (var item in members)
+        {
+            if (item.Id == selectedMemberId)
+            {
+                currentItem.MemberId = selectedMemberId;
+                currentItem.MemberName = item.Name;
+                selected = true;
+                break;
+            }
+        }
+        if (!selected)
+        {
+            currentItem.MemberId = 0;
+            currentItem.MemberName = "Не выбран";
+        }
+    }
+}

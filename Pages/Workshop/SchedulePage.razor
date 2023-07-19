@@ -1,0 +1,448 @@
+﻿@page "/workshop/schedule"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Identity;
+@using XTaho.Data.WebApp.Models.DataSets;
+@using XTaho.Data.WebApp.Models.Workshop.Schedule;
+@using XTaho.Data.WebApp.Models.Catalogs;
+@using XTaho.Data.WebApp.Components;
+@using XTaho.Data.WebApp.Services;
+@using XTaho.Data.WebApp.DataAccess.PostgreSql;
+
+@inject ScheduleService SService;
+@inject MembersService MService;
+
+<div class="page">
+    <div class="page__caption">
+        <h4>График записи</h4>
+    </div>
+    <div class="col-3 align-self-center">
+        <select class="form-select" id="member" @onchange="selectMemberOnChange">
+            @foreach (var member in members)
+            {
+                if (currentMemberId == member.Id)
+                {
+                    <option value="@member.Id" selected>@member.Name</option>
+                }
+                else
+                {
+                    <option value="@member.Id">@member.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="btn-toolbar justify-content-center" role="toolbar">
+        <div class="btn-group" role="group">
+            <span class="fs-5">Год</span>
+            <ButtonMinus OnClickCallback="btnYearMinus"></ButtonMinus>
+            <span  class="fs-5">@currentYear</span>
+            <ButtonPlus OnClickCallback="btnYearPlus"></ButtonPlus>
+            <span class="fs-5">Месяц</span>
+            <ButtonMinus OnClickCallback="btnMonthMinus"></ButtonMinus>
+            <span class="fs-5">@currentMonthName (@currentMonth)</span>
+            <ButtonPlus OnClickCallback="btnMonthPlus"></ButtonPlus>
+            <ButtonCurrentMonth OnClickCallback="btnCurrentMonth"></ButtonCurrentMonth>
+        </div>
+    </div>
+    <div class="schedule">
+        @foreach(var week in weeks)
+        {
+            <div class="schedule-week">
+                @foreach(var day in week.DayDescriptions)
+                {
+                    @if(day.Number == 0)
+                    {
+                        <div class="schedule-day empty"></div>
+                    }
+                    else
+                    {
+                        @if (day.Date == DateTime.Today)
+                        {
+                            <div class="schedule-day fill current">
+                                <span class="schedule-day__header">@day.ShortName</span>
+                                <a class="schedule-day__add-link" @onclick="(() => btnAddItemOnClick(day))" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</a>
+                                <div class="schedule-day__body">
+                                    @if (day.Schedule != null)
+                                    {
+                                        int i = 0;
+                                        @foreach (var item in day.Schedule)
+                                        {
+                                            i++;
+                                            <a class="schedule-day__body-link" @onclick="(() => btnEditItemOnClick(day, item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><span>@item.Description</span></a>
+                                            @if (i == 2)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                </div>
+                                <span class="schedule-day__number current" @onclick="(() => btnDayNumberOnClick(day))" data-bs-toggle="modal" data-bs-target="#staticBackdropDay">@day.Date.Day</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="schedule-day fill">
+                                <span class="schedule-day__header">@day.ShortName</span>
+                                <a class="schedule-day__add-link" @onclick="(() => btnAddItemOnClick(day))" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Добавить</a>
+                                <div class="schedule-day__body">
+                                    @if (day.Schedule != null)
+                                    {
+                                        int i = 0;
+                                        @foreach (var item in day.Schedule)
+                                        {
+                                            i++;
+                                            <a class="schedule-day__body-link" @onclick="(() => btnEditItemOnClick(day, item))" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><span>@item.Description</span></a>
+                                            @if (i == 2)
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                </div>
+                                <span class="schedule-day__number" @onclick="(() => btnDayNumberOnClick(day))" data-bs-toggle="modal" data-bs-target="#staticBackdropDay">@day.Date.Day</span>
+                        </div>
+                        }
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Запись</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row-1" @onsubmit="btnSaveItemOnClick">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание задачи</label>
+                        <textarea class="form-control" id="description" placeholder="введите описание (обязательно)" rows="3" @bind="currentDaySchedule.Description" required></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-outline-success">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staticBackdropDay" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropDayLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropDayLabel">Перечень записей</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row-1">
+                    <div class="mb-3">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="liveToast" class=@toastClassList role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">@(string.IsNullOrEmpty(errorDescription) ? "Ошибок нет!" : "Внимание!")</strong>
+            @*<small>11 mins ago</small>*@
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            @(string.IsNullOrEmpty(errorDescription) ? "Данные записаны" : errorDescription)
+        </div>
+    </div>
+</div>
+
+@code {
+    private int currentYear;
+    private int currentMonth;
+    private string currentMonthName = "Январь";
+    private int currentMemberId = 0;
+    private DayDescription currentItem = new DayDescription();
+    private DayScheduleModel currentDaySchedule = new DayScheduleModel();
+    private List<WeekDescription> weeks = new List<WeekDescription>();
+    private List<MemberModel> members = new List<MemberModel>();
+    private bool isNewItem;
+    private string errorDescription = "";
+    private string toastClassList = "toast fade";
+    private UserPermissionsDataSet userPermissions = new UserPermissionsDataSet();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Inject]
+    UserManager<IdentityUser> userManager { get; set; }
+
+    private void resetError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade";
+    }
+
+    private void setError(string eDescription)
+    {
+        errorDescription = eDescription;
+        toastClassList = "toast fade show border-danger border-4";
+    }
+
+    private void setNoError()
+    {
+        errorDescription = "";
+        toastClassList = "toast fade show border-success border-3";
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        resetError();
+        currentYear = DateTime.Now.Year;
+        currentMonth = DateTime.Now.Month;
+        changeCurrentMonthName();
+
+        var user = (await authenticationStateTask).User;
+        if (user.Identity.IsAuthenticated)
+        {
+            var currenUser = await userManager.GetUserAsync(user);
+            var userId = currenUser.Id;
+
+            var result = await userPermissions.Init(currenUser, user.IsInRole("Operator"));
+            if (result.Success)
+            {
+                members = userPermissions.Members;
+                members.Insert(0, new MemberModel() { Name = "Выберите сервисный центр" });
+                await UpdateWeeks();
+            }
+            else
+            {
+                setError(result.ErrorDescription ?? "Ошибка!");
+            }
+        }        
+    }
+
+    private async Task<bool> UpdateWeeks()
+    {
+        bool updateResult = true;
+
+        weeks.Clear();
+        int daysInMonth = DateTime.DaysInMonth(currentYear, currentMonth);
+
+        DateTime startDate = new DateTime(currentYear, currentMonth, 1);
+        DateTime endDate = new DateTime(currentYear, currentMonth, daysInMonth);
+        List<DayScheduleModel> MonthSchedule = new List<DayScheduleModel>();
+        if (currentMemberId != 0)
+        {
+            QueryResult<DayScheduleModel> scheduleResult = await SService.GetShedule(currentMemberId, startDate, endDate);
+            if (scheduleResult.Success)
+            {
+                MonthSchedule = scheduleResult.Collection ?? new List<DayScheduleModel>();
+            }
+            else
+            {
+                updateResult = false;
+                setError(scheduleResult.ErrorDescription ?? "Ошибка!");
+            }
+        }
+
+        DayDescription firstDay = new DayDescription(currentYear, currentMonth, 1);
+        WeekDescription currentWeek = new WeekDescription();
+        currentWeek.DayDescriptions = new List<DayDescription>();
+        DayDescription emptyDay = new DayDescription();
+        for (int i = 1; i < firstDay.Number; i++)
+        {
+            currentWeek.DayDescriptions.Add(emptyDay);
+        }
+        DayDescription currentDay = new DayDescription();
+        for (int i = 1; i <= daysInMonth; i++)
+        {
+            currentDay = new DayDescription(currentYear, currentMonth, i);
+            foreach(var daySchedule in MonthSchedule)
+            {
+                if (daySchedule.ScheduleDate == currentDay.Date)
+                {
+                    currentDay.Schedule.Add(daySchedule);
+                }
+            }
+            currentWeek.DayDescriptions.Add(currentDay);
+            if (currentDay.Number == 7)
+            {
+                weeks.Add(currentWeek);
+                currentWeek = new WeekDescription();
+                currentWeek.DayDescriptions = new List<DayDescription>();
+            }
+        }
+        for (int i = currentDay.Number; i < 7; i++)
+        {
+            currentWeek.DayDescriptions.Add(emptyDay);
+        }
+        weeks.Add(currentWeek);
+
+        return updateResult;
+    }
+
+    private async Task btnYearPlus()
+    {
+        currentYear++;
+        await UpdateWeeks();
+    }
+
+    private async Task btnYearMinus()
+    {
+        currentYear--;
+        await UpdateWeeks();
+    }
+
+    private async Task btnMonthPlus()
+    {
+        if(currentMonth == 12)
+        {
+            currentMonth = 1;
+        }
+        else
+        {
+            currentMonth++;
+        }
+        changeCurrentMonthName();
+        await UpdateWeeks();
+    }
+
+    private async Task btnMonthMinus()
+    {
+        if (currentMonth == 1)
+        {
+            currentMonth = 12;
+        }
+        else
+        {
+            currentMonth--;
+        }
+        changeCurrentMonthName();
+        await UpdateWeeks();
+    }
+
+    private void changeCurrentMonthName()
+    {
+        currentMonthName = "Декабрь";
+        switch(currentMonth)
+        {
+            case 1:
+                currentMonthName = "Январь";
+                break;
+            case 2:
+                currentMonthName = "Февраль";
+                break;
+            case 3:
+                currentMonthName = "Март";
+                break;
+            case 4:
+                currentMonthName = "Апрель";
+                break;
+            case 5:
+                currentMonthName = "Май";
+                break;
+            case 6:
+                currentMonthName = "Июнь";
+                break;
+            case 7:
+                currentMonthName = "Июль";
+                break;
+            case 8:
+                currentMonthName = "Август";
+                break;
+            case 9:
+                currentMonthName = "Сентябрь";
+                break;
+            case 10:
+                currentMonthName = "Октябрь";
+                break;
+            case 11:
+                currentMonthName = "Ноябрь";
+                break;
+        }
+    }
+
+    private async Task btnCurrentMonth()
+    {
+        currentYear = DateTime.Now.Year;
+        currentMonth = DateTime.Now.Month;
+        changeCurrentMonthName();
+
+        await UpdateWeeks();
+    }
+
+    private async Task selectMemberOnChange(ChangeEventArgs e)
+    {
+        int selectedMemberlId = int.Parse(e.Value.ToString());
+        bool selected = false;
+        foreach (var item in members)
+        {
+            if (item.Id == selectedMemberlId)
+            {
+                currentMemberId = selectedMemberlId;
+                selected = true;
+                break;
+            }
+        }
+        if (!selected)
+        {
+            selectedMemberlId = 0;
+        }
+        await UpdateWeeks();
+    }
+
+    private void btnAddItemOnClick(DayDescription dayDescription)
+    {
+        if (currentMemberId != 0)
+        {
+            isNewItem = true;
+            currentItem = dayDescription;
+            currentDaySchedule = new DayScheduleModel();
+        }
+    }
+
+    private void btnEditItemOnClick(DayDescription dayDescription, DayScheduleModel daySchedule)
+    {
+        isNewItem = false;
+        currentItem = dayDescription;
+        currentDaySchedule = daySchedule;
+    }
+
+    private void btnDayNumberOnClick(DayDescription dayDescription)
+    {
+        currentItem = dayDescription;
+    }
+
+    private async Task btnSaveItemOnClick()
+    {
+        resetError();
+        ExecuteResult result;
+        if (isNewItem)
+        {
+            result = await SService.AddDayScheduleAsync(currentItem, currentDaySchedule, currentMemberId);
+        }
+        else
+        {
+            result = await SService.UpdateDayScheduleAsync(currentItem, currentDaySchedule);
+        }
+        if (result.Success)
+        {
+            setNoError();
+            await UpdateWeeks();
+        }
+        else
+        {
+            setError(result.ErrorDescription ?? "Ошибка!");
+        }
+    }
+}
